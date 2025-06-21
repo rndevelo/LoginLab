@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "263101724279",
+    "project_id": "login-lab-b7e7b",
+    "storage_bucket": "login-lab-b7e7b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:263101724279:android:296b77d3b548ab75b93872",
+        "android_client_info": {
+          "package_name": "io.rndev.loginlab"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC105fjMQz6VwUfXRx_zWPRhE6FzUBsPfs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
