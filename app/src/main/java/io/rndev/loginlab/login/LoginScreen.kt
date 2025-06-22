@@ -18,11 +18,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,29 +36,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
+import io.rndev.loginlab.composables.LoadingAnimation
 import io.rndev.loginlab.login.composables.EmailOptionContent
 import io.rndev.loginlab.login.composables.ForgotYourPasswordText
 import io.rndev.loginlab.login.composables.RegisterButton
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object Login
+data object Login : NavKey
 
 @Composable
 fun LoginScreen(
-    vm: LoginViewModel,
+    vm: LoginViewModel = hiltViewModel(),
     onRegister: () -> Unit,
     onHome: () -> Unit
 ) {
 
-//    val state = vm.state
-
+    val state = vm.uiState.collectAsState()
+    val isLoggedIn = state.value.isLoggedIn
+    val snackBarHostState = remember { SnackbarHostState() }
     var isShowEmailForm by remember { mutableStateOf(false) }
+    val unknownError = stringResource(R.string.app_text_unknown_error)
 
-//    val isAuthenticated by vm.isAuthenticated.collectAsState()
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn == true) {
+            onHome()
+        }
+    }
+
+    LaunchedEffect(state.value.error) {
+        if (state.value.error != null) {
+            snackBarHostState.showSnackbar(state.value.error ?: unknownError)
+            vm.onClearError()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -69,11 +87,9 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-//        Text(isAuthenticated.toString())
-
         // Título
         Text(
-            text = "Login in...",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -81,7 +97,12 @@ fun LoginScreen(
 
         // Tipos de inicio de sesión
         AnimatedVisibility(visible = !isShowEmailForm) {
-            LoginOptionsContent { isShowEmailForm = true }
+            LoginOptionsContent(
+                onShowEmailForm = { isShowEmailForm = true },
+                onPhoneClick = vm::onPhoneSignIn,
+                onGoogleSignIn = vm::onGoogleSignIn,
+                onFacebookSignIn = vm::onFacebookSignIn
+            )
         }
 
         // Formulario de Email
@@ -104,10 +125,16 @@ fun LoginScreen(
             )
         }
     }
+    if (state.value.isLoading == true) LoadingAnimation()
 }
 
 @Composable
-private fun LoginOptionsContent(onShowEmailForm: () -> Unit) {
+private fun LoginOptionsContent(
+    onShowEmailForm: () -> Unit,
+    onPhoneClick: () -> Unit,
+    onGoogleSignIn: () -> Unit,
+    onFacebookSignIn: () -> Unit,
+) {
 
     Column {
         // Botón Email
@@ -128,16 +155,34 @@ private fun LoginOptionsContent(onShowEmailForm: () -> Unit) {
 
         Spacer(Modifier.height(12.dp))
 
+        // Botón Teléfono
+        OutlinedButton(
+            onClick = onPhoneClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(45.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Phone,
+                contentDescription = stringResource(R.string.login_text_sign_in_with_phone),
+                tint = Color.Gray
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.login_text_sign_in_with_phone))
+        }
+
+        Spacer(Modifier.height(12.dp))
+
         // Botón Google
         OutlinedButton(
-            onClick = {},
+            onClick = onGoogleSignIn,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(45.dp)
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_google),
-                contentDescription = R.drawable.ic_google.toString(),
+                contentDescription = stringResource(R.string.login_text_sign_in_with_google),
                 modifier = Modifier.size(20.dp)
             )
             Spacer(Modifier.width(8.dp))
@@ -145,6 +190,23 @@ private fun LoginOptionsContent(onShowEmailForm: () -> Unit) {
                 if (false) stringResource(R.string.login_text_signing_in)
                 else stringResource(R.string.login_text_sign_in_with_google)
             )
+        }
+        Spacer(Modifier.height(12.dp))
+
+        // Botón Facebook
+        OutlinedButton(
+            onClick = onFacebookSignIn,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(45.dp)
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_facebook), // Asegúrate de tener el icono
+                contentDescription = stringResource(R.string.login_text_sign_in_with_facebook),
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.login_text_sign_in_with_facebook))
         }
     }
 }

@@ -16,6 +16,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,24 +26,38 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
+import io.rndev.loginlab.composables.LoadingAnimation
 import io.rndev.loginlab.login.composables.EmailOptionContent
 import io.rndev.loginlab.login.composables.PasswordTextField
 import kotlinx.serialization.Serializable
 
 @Serializable
-data object Register
+data object Register : NavKey
 
 @Composable
-fun RegisterScreen(vm: RegisterViewModel, onHome: () -> Unit, onBack: () -> Unit) {
+fun RegisterScreen(vm: RegisterViewModel = hiltViewModel(), onHome: () -> Unit, onBack: () -> Unit) {
 
+    val state = vm.uiState.collectAsState()
+    val isLoggedIn = state.value.isLoggedIn
     var confirmPassword by remember { mutableStateOf("") }
-
     val snackBarHostState = remember { SnackbarHostState() }
+    val unknownError = stringResource(R.string.app_text_unknown_error)
 
-//    LaunchedEffect(snackBarHostState) {
-//        snackBarHostState.showSnackbar()
-//    }
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn == true) {
+            onHome()
+        }
+    }
+
+    LaunchedEffect(state.value.error) {
+        if (state.value.error != null) {
+            snackBarHostState.showSnackbar(state.value.error ?: unknownError)
+            vm.onClearError()
+        }
+    }
 
     Scaffold(
         modifier = Modifier
@@ -76,7 +91,6 @@ fun RegisterScreen(vm: RegisterViewModel, onHome: () -> Unit, onBack: () -> Unit
                         error = null,
                         imeAction = ImeAction.Next,
                         onValueChange = { confirmPassword = it },
-                        onDone = onHome,
                     )
 
                     Spacer(Modifier.height(12.dp))
@@ -84,5 +98,6 @@ fun RegisterScreen(vm: RegisterViewModel, onHome: () -> Unit, onBack: () -> Unit
                 }
             )
         }
+        if (state.value.isLoading == true) LoadingAnimation()
     }
 }

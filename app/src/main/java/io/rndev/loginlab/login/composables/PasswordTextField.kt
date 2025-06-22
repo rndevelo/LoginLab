@@ -31,8 +31,8 @@ fun PasswordTextField(
     value: String,
     error: String?,
     imeAction: ImeAction,
+    keyboardActions: KeyboardActions = KeyboardActions(),
     onValueChange: (String) -> Unit,
-    onDone: () -> Unit,
 ) {
 
     var isPasswordVisible by remember { mutableStateOf(false) } // 👈 estado para visibilidad
@@ -68,7 +68,7 @@ fun PasswordTextField(
             keyboardType = KeyboardType.Password,
             imeAction = imeAction
         ),
-        keyboardActions = KeyboardActions { onDone },
+        keyboardActions = keyboardActions,
         modifier = Modifier.fillMaxWidth()
     )
 }

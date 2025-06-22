@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -88,8 +89,10 @@ fun EmailOptionContent(
             error = error,
             imeAction = ImeAction.Done,
             onValueChange = { password = it },
-            onDone = { onSign(email.trim(), password.trim()) },
+            keyboardActions = KeyboardActions { onSign(email.trim(), password.trim()) }
         )
+
+        forgotYourPasswordText()
 
         Spacer(Modifier.height(16.dp))
 

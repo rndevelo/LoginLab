@@ -5,9 +5,9 @@ import io.rndev.loginlab.Result
 
 
 interface AuthRepository {
-    fun currentUser(): Flow<Result<User?>>
+    fun currentUser(): Flow<Result<User>>
     fun isAuthenticated(): Flow<Result<Boolean>>
     fun signIn(email: String, password: String): Flow<Result<Boolean>>
-    fun signUp(email: String, password: String)
+    fun signUp(email: String, password: String): Flow<Result<Boolean>>
     fun signOut()
 }

@@ -1,29 +1,50 @@
 package io.rndev.loginlab.login
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.rndev.loginlab.data.AuthRepository
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
+import io.rndev.loginlab.data.AuthRepository
+import io.rndev.loginlab.data.UiState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class LoginViewModel(private val authRepository: AuthRepository) : ViewModel() {
+@HiltViewModel
+class LoginViewModel @Inject constructor(private val authRepository: AuthRepository) : ViewModel() {
 
-    data class UiState(
-        val loggedIn: Boolean = false,
-        val error: String? = null,
-    )
+    private val _uiState = MutableStateFlow(UiState())
+    val uiState: StateFlow<UiState> = _uiState
 
+    fun onSignIn(user: String, password: String) = viewModelScope.launch {
+        _uiState.value = UiState(isLoading = true)
 
-    fun onSignIn(user: String, password: String) = viewModelScope.launch{
-        authRepository.signIn(user, password).collect { result ->
-
+        viewModelScope.launch {
+            authRepository.signIn(user, password).collectLatest { result ->
+                _uiState.value = when (result) {
+                    is Result.Success -> UiState(isLoggedIn = result.data)
+                    is Result.Error -> UiState(error = result.exception.message)
+                    is Result.Loading -> UiState(isLoading = true)
+                }
+            }
         }
     }
 
+    fun onPhoneSignIn() = viewModelScope.launch {
+
+    }
+
+    fun onGoogleSignIn() = viewModelScope.launch {
+
+    }
+
+    fun onFacebookSignIn() = viewModelScope.launch {
+
+    }
+
+    fun onClearError() {
+        _uiState.value = UiState(error = null)
+    }
 }

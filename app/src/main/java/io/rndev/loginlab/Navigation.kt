@@ -1,79 +1,74 @@
 package io.rndev.loginlab
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.navigation3.runtime.NavEntry
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.entry
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import io.rndev.loginlab.data.AuthRepositoryImpl
+import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
 import io.rndev.loginlab.home.Home
 import io.rndev.loginlab.home.HomeScreen
 import io.rndev.loginlab.login.Login
 import io.rndev.loginlab.login.LoginScreen
-import io.rndev.loginlab.login.LoginViewModel
 import io.rndev.loginlab.register.Register
 import io.rndev.loginlab.register.RegisterScreen
-import io.rndev.loginlab.register.RegisterViewModel
+import io.rndev.loginlab.splash.Splash
+import io.rndev.loginlab.splash.SplashScreen
 
 @SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun Navigation() {
 
-    val backStack = remember { mutableStateListOf<Any>(Login) }
-
-    val authViewModel = AuthViewModel(
-        authRepository = AuthRepositoryImpl(auth = Firebase.auth),
-    )
-
-    val loginViewModel = LoginViewModel(
-        authRepository = AuthRepositoryImpl(auth = Firebase.auth),
-    )
-
-    val registerViewModel = RegisterViewModel(
-        authRepository = AuthRepositoryImpl(auth = Firebase.auth),
-    )
-
-    val isAuthenticated = authViewModel.isAuthenticated.collectAsState()
-
-    LaunchedEffect(isAuthenticated.value) {
-        Log.d("isAuthenticated", "Navigation: ${isAuthenticated.value}")
-        if (isAuthenticated.value is Result.Success) {
-            backStack.add(Home)
-        }
-    }
+    val backStack = rememberNavBackStack(Splash)
 
     NavDisplay(
-        backStack = backStack
-    ) { key ->
-        when (key) {
-            Login -> NavEntry(key) {
-                LoginScreen(
-                    vm = loginViewModel,
-                    onRegister = { backStack.add(Register) },
-                    onHome = { backStack.add(Home) }
+        backStack = backStack,
+        entryDecorators = listOf(
+            rememberSceneSetupNavEntryDecorator(),
+            rememberSavedStateNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
+        entryProvider = entryProvider {
+            entry<Splash> {
+                SplashScreen(
+                    onLogin = {
+                        backStack.clear()
+                        backStack.add(Login)
+                    },
+                    onHome = {
+                        backStack.clear()
+                        backStack.add(Home)
+                    },
+                    onRetry = {
+                        backStack.clear()
+                        backStack.add(Splash)
+                    }
                 )
             }
-
-            Register -> NavEntry(key) {
+            entry<Login> {
+                LoginScreen(
+                    onRegister = { backStack.add(Register) },
+                    onHome = {
+                        backStack.clear()     // 🔄 Limpia toda la pila
+                        backStack.add(Home)
+                    }
+                )
+            }
+            entry<Register> {
                 RegisterScreen(
-                    vm = registerViewModel,
                     onHome = { backStack.add(Home) },
-                    onBack = { backStack.removeLastOrNull() })
+                    onBack = { backStack.removeLastOrNull() }
+                )
             }
-
-            Home -> NavEntry(key) {
-                HomeScreen()
+            entry<Home> {
+                HomeScreen {
+                    backStack.clear()
+                    backStack.add(Login)
+                }
             }
-
-            else -> error("No route for $key")
         }
-
-
-    }
+    )
 }
