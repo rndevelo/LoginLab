@@ -43,17 +43,25 @@ class AuthRepositoryImpl @Inject constructor(val auth: FirebaseAuth) : AuthRepos
     }
 
     override fun signIn(email: String, password: String) = channelFlow {
+        Log.d("AuthState", "signIn: LOading")
+
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener {
+                Log.d("AuthState", "signIn: ${it.user?.email}")
+
                 launch {
                     send(Result.Success(it.user != null))
                 }
             }
             .addOnFailureListener {
+                Log.d("AuthState", "signIn: ${it.message}")
+
                 launch {
                     send(Result.Error(it))
                 }
             }
+
+        awaitClose()
     }
 
     override fun signUp(email: String, password: String) = channelFlow {

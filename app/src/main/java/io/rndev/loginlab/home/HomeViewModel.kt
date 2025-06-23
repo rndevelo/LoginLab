@@ -37,7 +37,7 @@ class HomeViewModel @Inject constructor(private val authRepository: AuthReposito
                 user = userResult.data
             )
 
-            else -> UiState() // Loading o estado inicial
+            else -> UiState()
         }
     }.stateIn(
         scope = viewModelScope,
