@@ -1,8 +1,11 @@
 package io.rndev.loginlab.data
 
-import android.util.Log
+import com.google.firebase.auth.AuthCredential
+import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.PhoneAuthCredential
 import io.rndev.loginlab.Result
 import jakarta.inject.Inject
 import kotlinx.coroutines.channels.awaitClose
@@ -18,13 +21,10 @@ class AuthRepositoryImpl @Inject constructor(val auth: FirebaseAuth) : AuthRepos
 
         currentUser?.reload()?.addOnSuccessListener {
             launch {
-                Log.d("AuthState", "reload success: ${currentUser.email}")
                 send(Result.Success(currentUser.toUser()))
             }
         }?.addOnFailureListener {
             launch {
-                Log.d("AuthState", "reload error: $it")
-
                 send(Result.Error(it))
             }
         }
@@ -33,8 +33,6 @@ class AuthRepositoryImpl @Inject constructor(val auth: FirebaseAuth) : AuthRepos
 
     override fun isAuthenticated() = channelFlow {
         auth.addAuthStateListener {
-            Log.d("AuthState", "addAuthStateListener: ${it.currentUser?.email}")
-
             launch {
                 send(Result.Success(it.currentUser != null))
             }
@@ -43,19 +41,14 @@ class AuthRepositoryImpl @Inject constructor(val auth: FirebaseAuth) : AuthRepos
     }
 
     override fun signIn(email: String, password: String) = channelFlow {
-        Log.d("AuthState", "signIn: LOading")
 
         auth.signInWithEmailAndPassword(email, password)
             .addOnSuccessListener {
-                Log.d("AuthState", "signIn: ${it.user?.email}")
-
                 launch {
                     send(Result.Success(it.user != null))
                 }
             }
             .addOnFailureListener {
-                Log.d("AuthState", "signIn: ${it.message}")
-
                 launch {
                     send(Result.Error(it))
                 }
@@ -77,6 +70,52 @@ class AuthRepositoryImpl @Inject constructor(val auth: FirebaseAuth) : AuthRepos
                 }
             }
 
+        awaitClose()
+    }
+
+    override fun phoneSingIn(credential: PhoneAuthCredential) = channelFlow {
+
+        auth.signInWithCredential(credential)
+            .addOnSuccessListener {
+                launch {
+                    send(Result.Success(it.user != null))
+                }
+            }
+            .addOnFailureListener {
+                launch {
+                    send(Result.Error(it))
+                }
+            }
+        awaitClose()
+    }
+
+    override fun googleSingIn(credential: AuthCredential) = channelFlow {
+        auth.signInWithCredential(credential)
+            .addOnSuccessListener {
+                launch {
+                    send(Result.Success(it.user != null))
+                }
+            }
+            .addOnFailureListener {
+                launch {
+                    send(Result.Error(it))
+                }
+            }
+        awaitClose()
+    }
+
+    override fun facebookSingIn(credential: AuthCredential) = channelFlow {
+        auth.signInWithCredential(credential)
+            .addOnSuccessListener {
+                launch {
+                    send(Result.Success(it.user != null))
+                }
+            }
+            .addOnFailureListener {
+                launch {
+                    send(Result.Error(it))
+                }
+            }
         awaitClose()
     }
 

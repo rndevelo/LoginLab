@@ -9,6 +9,7 @@ import io.rndev.loginlab.data.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,17 +26,19 @@ class RegisterViewModel @Inject constructor(
 
         viewModelScope.launch {
             authRepository.signUp(user, password).collectLatest { result ->
-                _uiState.value = when (result) {
-                    is Result.Success -> UiState(isLoggedIn = result.data)
-                    is Result.Error -> UiState(error = result.exception.message)
-                    is Result.Loading -> UiState(isLoading = true)
+                _uiState.update {
+                    when (result) {
+                        is Result.Success -> it.copy(isLoggedIn = result.data)
+                        is Result.Error -> it.copy(error = result.exception.message)
+                        is Result.Loading -> it.copy(isLoading = true)
+                    }
                 }
             }
         }
     }
 
     fun onClearError() {
-        _uiState.value = UiState(error = null)
+        _uiState.update { it.copy(error = null) }
     }
 }
 

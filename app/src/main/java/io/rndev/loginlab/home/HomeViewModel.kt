@@ -2,6 +2,7 @@ package io.rndev.loginlab.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.facebook.login.LoginManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.data.AuthRepository
@@ -14,7 +15,10 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val authRepository: AuthRepository) : ViewModel() {
+class HomeViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    val loginManager: LoginManager
+) : ViewModel() {
 
     val uiState: StateFlow<UiState> = combine(
         authRepository.isAuthenticated(),
@@ -47,6 +51,7 @@ class HomeViewModel @Inject constructor(private val authRepository: AuthReposito
 
 
     fun onSignOut() = viewModelScope.launch {
+        loginManager.logOut()
         authRepository.signOut()
     }
 }

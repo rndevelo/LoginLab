@@ -12,7 +12,20 @@
           "package_name": "io.rndev.loginlab"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "263101724279-0bn549sspkakirbbe45nfp333n6rgsd2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.rndev.loginlab",
+            "certificate_hash": "c2033ea7c735e43cb96d762cd61c5cca3767095b"
+          }
+        },
+        {
+          "client_id": "263101724279-50gq008mptu0rf9r26jc4prcgmp32h6q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC105fjMQz6VwUfXRx_zWPRhE6FzUBsPfs"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "263101724279-50gq008mptu0rf9r26jc4prcgmp32h6q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

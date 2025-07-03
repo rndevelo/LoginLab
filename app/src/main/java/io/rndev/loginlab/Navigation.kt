@@ -1,6 +1,5 @@
 package io.rndev.loginlab
 
-import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entry
@@ -18,7 +17,6 @@ import io.rndev.loginlab.register.RegisterScreen
 import io.rndev.loginlab.splash.Splash
 import io.rndev.loginlab.splash.SplashScreen
 
-@SuppressLint("ViewModelConstructorInComposable")
 @Composable
 fun Navigation() {
 

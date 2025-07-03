@@ -11,6 +11,9 @@ activityCompose = "1.10.1"
 composeBom = "2025.06.01"
 materialIconsExtended = "1.7.8"
 
+facebookLogin = "latest.release"
+
+
 nav3 = "1.0.0-alpha04"
 lifecycleViewModel = "1.0.0-SNAPSHOT"
 nav3Material = "1.0.0-SNAPSHOT"
@@ -56,6 +59,8 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebookLogin" }
+
 
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 hilt-core = { group = "com.google.dagger", name = "hilt-core", version.ref = "hilt" }

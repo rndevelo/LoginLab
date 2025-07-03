@@ -1,6 +1,7 @@
 package io.rndev.loginlab.login
 
-import android.util.Log
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -23,6 +24,8 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -44,8 +48,11 @@ import io.rndev.loginlab.R
 import io.rndev.loginlab.composables.LoadingAnimation
 import io.rndev.loginlab.login.composables.EmailOptionContent
 import io.rndev.loginlab.login.composables.ForgotYourPasswordText
+import io.rndev.loginlab.login.composables.PhoneOptionContent
 import io.rndev.loginlab.login.composables.RegisterButton
 import kotlinx.serialization.Serializable
+
+enum class LoginFormType { EMAIL, PHONE }
 
 @Serializable
 data object Login : NavKey
@@ -59,8 +66,8 @@ fun LoginScreen(
 
     val state = vm.uiState.collectAsState()
     val isLoggedIn = state.value.isLoggedIn
+    val error = state.value.error
     val snackBarHostState = remember { SnackbarHostState() }
-    var isShowEmailForm by remember { mutableStateOf(false) }
     val unknownError = stringResource(R.string.app_text_unknown_error)
 
     LaunchedEffect(isLoggedIn) {
@@ -69,15 +76,53 @@ fun LoginScreen(
         }
     }
 
-    LaunchedEffect(state.value.error) {
-        if (state.value.error != null) {
+    LaunchedEffect(error) {
+        if (error != null) {
             snackBarHostState.showSnackbar(state.value.error ?: unknownError)
             vm.onClearError()
         }
     }
 
+    val facebookLoginLauncher = rememberLauncherForActivityResult(
+        contract = vm.loginManager.createLogInActivityResultContract(vm.callbackManager, null),
+        onResult = {
+            // El resultado se maneja en el callback registrado en el ViewModel
+            // a través del vm.callbackManager
+        }
+    )
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackBarHostState) }
+    ) { innerPadding ->
+        LoginContent(
+            isLoading = state.value.isLoading == true,
+            error = error,
+            onRegister = onRegister,
+            onAction = vm::onAction,
+            onFbActivityResult = {
+                facebookLoginLauncher.launch(listOf("email", "public_profile"))
+                vm.onAction(LoginAction.OnFacebookSignIn)
+            },
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
+}
+
+@Composable
+private fun LoginContent(
+    isLoading: Boolean,
+    error: String?,
+    onRegister: () -> Unit,
+    onAction: (LoginAction) -> Unit,
+    onFbActivityResult: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val context = LocalContext.current
+    var showForm by remember { mutableStateOf<LoginFormType?>(null) }
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(32.dp)
             .animateContentSize()
@@ -97,23 +142,58 @@ fun LoginScreen(
         Spacer(Modifier.height(24.dp))
 
         // Tipos de inicio de sesión
-        AnimatedVisibility(visible = !isShowEmailForm) {
+        AnimatedVisibility(visible = showForm == null) {
             LoginOptionsContent(
-                onShowEmailForm = { isShowEmailForm = true },
-                onPhoneClick = vm::onPhoneSignIn,
-                onGoogleSignIn = vm::onGoogleSignIn,
-                onFacebookSignIn = vm::onFacebookSignIn
+                onShowEmailForm = { showForm = LoginFormType.EMAIL },
+                onShowPhoneForm = { showForm = LoginFormType.PHONE },
+                onGoogleSignIn = { onAction(LoginAction.OnGoogleSignIn(context)) },
+                onFacebookSignIn = {
+                    onAction(LoginAction.OnFacebookSignIn)
+                    onFbActivityResult()
+                }
             )
         }
 
         // Formulario de Email
-        AnimatedVisibility(visible = isShowEmailForm) {
+        AnimatedVisibility(visible = showForm == LoginFormType.EMAIL) {
             EmailOptionContent(
                 title = stringResource(R.string.login_text_sign_in_with_email),
                 textButton = stringResource(R.string.login_text_sign_in),
-                error = null,
-                onBack = { isShowEmailForm = false },
-                onSign = vm::onSignIn,
+                error = error,
+                onBack = { showForm = null },
+                onSign = { user, password ->
+                    onAction(LoginAction.OnEmailSignIn(user, password))
+                },
+                forgotYourPasswordText = {
+                    ForgotYourPasswordText {}
+                },
+                buttonContent = {
+                    RegisterButton(
+                        onRegister = onRegister,
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    )
+                },
+            )
+        }
+
+        AnimatedVisibility(visible = showForm == LoginFormType.PHONE) {
+
+            PhoneOptionContent(
+                error = error,
+                onSendPhone = { phoneNumber ->
+                    onAction(LoginAction.OnPhoneSignIn(phoneNumber, context as Activity))
+                },
+                onBack = { showForm = null }
+            )
+
+            EmailOptionContent(
+                title = stringResource(R.string.login_text_sign_in_with_email),
+                textButton = stringResource(R.string.login_text_sign_in),
+                error = error,
+                onBack = { showForm = null },
+                onSign = { user, password ->
+                    onAction(LoginAction.OnEmailSignIn(user, password))
+                },
                 forgotYourPasswordText = {
                     ForgotYourPasswordText {}
                 },
@@ -126,13 +206,13 @@ fun LoginScreen(
             )
         }
     }
-    if (state.value.isLoading == true) LoadingAnimation()
+    if (isLoading) LoadingAnimation()
 }
 
 @Composable
 private fun LoginOptionsContent(
     onShowEmailForm: () -> Unit,
-    onPhoneClick: () -> Unit,
+    onShowPhoneForm: () -> Unit,
     onGoogleSignIn: () -> Unit,
     onFacebookSignIn: () -> Unit,
 ) {
@@ -158,7 +238,7 @@ private fun LoginOptionsContent(
 
         // Botón Teléfono
         OutlinedButton(
-            onClick = onPhoneClick,
+            onClick = onShowPhoneForm,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(45.dp)

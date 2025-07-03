@@ -6,11 +6,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,10 +20,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,21 +32,14 @@ import androidx.compose.ui.unit.dp
 import io.rndev.loginlab.R
 
 @Composable
-fun EmailOptionContent(
-    title: String,
-    textButton: String,
+fun PhoneOptionContent(
     error: String?,
+    onSendPhone: (String) -> Unit,
     onBack: () -> Unit,
-    onSign: (String, String) -> Unit = { _, _ -> },
-    passwordTextField: @Composable () -> Unit = {},
-    forgotYourPasswordText: @Composable () -> Unit = {},
-    buttonContent: @Composable () -> Unit = {},
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var phone by rememberSaveable { mutableStateOf("") }
 
     Column(Modifier.animateContentSize()) {
-        // Encabezado con botón atrás
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -57,56 +51,42 @@ fun EmailOptionContent(
                 )
             }
             Text(
-                text = title,
+                text = "Sign in with phone number",
                 style = MaterialTheme.typography.titleLarge
             )
         }
 
         Spacer(Modifier.height(16.dp))
 
-        // Campo Email
         OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text(stringResource(R.string.login_text_email)) },
-            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
+            value = phone,
+            onValueChange = { phone = it },
+            label = { Text("Phone number") },
+            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
+            placeholder = { Text("+34 612 345 678") },
             singleLine = true,
             isError = error != null,
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
+                keyboardType = KeyboardType.Phone,
+                imeAction = ImeAction.Done
             ),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(Modifier.height(12.dp))
-
-        // Campo Contraseña
-        passwordTextField()
-
-        // Campo Contraseña
-        PasswordTextField(
-            value = password,
-            error = error,
-            imeAction = ImeAction.Done,
-            onValueChange = { password = it },
-            keyboardActions = KeyboardActions { onSign(email.trim(), password.trim()) }
-        )
-
-        forgotYourPasswordText()
-
         Spacer(Modifier.height(16.dp))
 
-        // Botón iniciar sesión
         Button(
-            onClick = { onSign(email.trim(), password.trim()) },
+            onClick = { onSendPhone(phone) },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(45.dp)
         ) {
-            Text(textButton)
+            Text("Send code")
         }
 
-        buttonContent()
+        error?.let {
+            Spacer(Modifier.height(8.dp))
+            Text(it, color = Color.Red)
+        }
     }
 }
