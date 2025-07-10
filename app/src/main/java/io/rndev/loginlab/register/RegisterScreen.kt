@@ -60,7 +60,6 @@ fun RegisterScreen(
     LaunchedEffect(error) {
         if (error != null) {
             snackBarHostState.showSnackbar(error)
-            vm.onClearError()
         }
     }
 
