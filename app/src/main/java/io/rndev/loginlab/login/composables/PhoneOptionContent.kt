@@ -2,91 +2,81 @@ package io.rndev.loginlab.login.composables
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import io.rndev.loginlab.R
 
 @Composable
 fun PhoneOptionContent(
+    title: String,
+    label: String,
+    initialValue: String,
+    textButton: String,
+    isEnabled: Boolean,
     error: String?,
-    onSendPhone: (String) -> Unit,
+    leadingIconContent: @Composable () -> Unit,
+    dropDownContent: @Composable () -> Unit = {},
+    onInitialValue: (String) -> Unit,
+    onClick: () -> Unit,
     onBack: () -> Unit,
 ) {
-    var phone by rememberSaveable { mutableStateOf("") }
 
     Column(Modifier.animateContentSize()) {
+        SignInOptionTitle(
+            title = title,
+            onBack = onBack
+        )
+
+        Spacer(Modifier.height(16.dp))
+
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = Icons.AutoMirrored.Default.ArrowBack.toString()
-                )
-            }
-            Text(
-                text = "Sign in with phone number",
-                style = MaterialTheme.typography.titleLarge
+            dropDownContent()
+
+            OutlinedTextField(
+                value = initialValue,
+                onValueChange = { onInitialValue(it) },
+                label = { Text(label) },
+                leadingIcon = leadingIconContent,
+                singleLine = true,
+                isError = error != null,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Done
+                ),
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
         Spacer(Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = phone,
-            onValueChange = { phone = it },
-            label = { Text("Phone number") },
-            leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null) },
-            placeholder = { Text("+34 612 345 678") },
-            singleLine = true,
-            isError = error != null,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Phone,
-                imeAction = ImeAction.Done
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(16.dp))
-
         Button(
-            onClick = { onSendPhone(phone) },
+            onClick = onClick,
+            enabled = isEnabled,
+            shape = OutlinedTextFieldDefaults.shape,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(45.dp)
         ) {
-            Text("Send code")
-        }
-
-        error?.let {
-            Spacer(Modifier.height(8.dp))
-            Text(it, color = Color.Red)
+            Text(textButton)
         }
     }
 }
+

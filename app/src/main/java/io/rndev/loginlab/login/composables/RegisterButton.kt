@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -31,6 +32,7 @@ fun RegisterButton(
     // Button to create account
     OutlinedButton(
         onClick = onRegister,
+        shape = OutlinedTextFieldDefaults.shape,
         modifier = Modifier
             .fillMaxWidth()
             .height(45.dp)

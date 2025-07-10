@@ -1,11 +1,13 @@
 package io.rndev.loginlab.login
 
 import android.app.Activity
+import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,9 +23,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Science
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -34,18 +39,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
+import io.rndev.loginlab.UiEvent
 import io.rndev.loginlab.composables.LoadingAnimation
+import io.rndev.loginlab.login.composables.DropDownMenu
 import io.rndev.loginlab.login.composables.EmailOptionContent
 import io.rndev.loginlab.login.composables.ForgotYourPasswordText
 import io.rndev.loginlab.login.composables.PhoneOptionContent
@@ -61,25 +69,21 @@ data object Login : NavKey
 fun LoginScreen(
     vm: LoginViewModel = hiltViewModel(),
     onRegister: () -> Unit,
-    onHome: () -> Unit
+    onVerify: (String) -> Unit,
+    onHome: () -> Unit,
 ) {
 
     val state = vm.uiState.collectAsState()
-    val isLoggedIn = state.value.isLoggedIn
     val error = state.value.error
     val snackBarHostState = remember { SnackbarHostState() }
-    val unknownError = stringResource(R.string.app_text_unknown_error)
 
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn == true) {
-            onHome()
-        }
-    }
-
-    LaunchedEffect(error) {
-        if (error != null) {
-            snackBarHostState.showSnackbar(state.value.error ?: unknownError)
-            vm.onClearError()
+    LaunchedEffect(Unit) {
+        vm.events.collect { event ->
+            when (event) {
+                is UiEvent.NavigateToHome -> onHome()
+                is UiEvent.NavigateToVerification -> onVerify(event.verificationId)
+                is UiEvent.ShowError -> snackBarHostState.showSnackbar(event.message)
+            }
         }
     }
 
@@ -92,26 +96,30 @@ fun LoginScreen(
     )
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()                          // 👈 añade padding automático cuando aparece el teclado
+            .navigationBarsPadding(),
         snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { innerPadding ->
-        LoginContent(
-            isLoading = state.value.isLoading == true,
-            error = error,
-            onRegister = onRegister,
-            onAction = vm::onAction,
-            onFbActivityResult = {
-                facebookLoginLauncher.launch(listOf("email", "public_profile"))
-                vm.onAction(LoginAction.OnFacebookSignIn)
-            },
-            modifier = Modifier.padding(innerPadding)
-        )
+        Box(modifier = Modifier.fillMaxSize()){
+            LoginContent(
+                error = error,
+                onRegister = onRegister,
+                onAction = vm::onAction,
+                onFbActivityResult = {
+                    facebookLoginLauncher.launch(listOf("email", "public_profile"))
+                    vm.onAction(LoginAction.OnFacebookSignIn)
+                },
+                modifier = Modifier.padding(innerPadding)
+            )
+            if (state.value.isLoading == true) LoadingAnimation()
+        }
     }
 }
 
 @Composable
 private fun LoginContent(
-    isLoading: Boolean,
     error: String?,
     onRegister: () -> Unit,
     onAction: (LoginAction) -> Unit,
@@ -121,25 +129,51 @@ private fun LoginContent(
     val context = LocalContext.current
     var showForm by remember { mutableStateOf<LoginFormType?>(null) }
 
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(32.dp)
             .animateContentSize()
-            .verticalScroll(rememberScrollState()) // 👈 permite hacer scroll si el teclado tapa
-            .imePadding()                          // 👈 añade padding automático cuando aparece el teclado
-            .navigationBarsPadding(),
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 32.dp)
+            .verticalScroll(rememberScrollState()), // 👈 permite hacer scroll si el teclado tapa
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // Título
-        Text(
-            text = stringResource(R.string.app_name),
-            style = MaterialTheme.typography.headlineMedium
-        )
+        AnimatedVisibility(visible = showForm == null) {
 
-        Spacer(Modifier.height(24.dp))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    imageVector = Icons.Filled.Science,
+                    contentDescription = stringResource(R.string.app_name),
+                    modifier = Modifier.size(72.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                // Título
+                Text(
+                    text = stringResource(R.string.app_name), // O usa stringResource(R.string.app_name)
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = stringResource(R.string.login_text_securely_simply_swiftly),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+
+                Spacer(Modifier.height(24.dp))
+            }
+        }
 
         // Tipos de inicio de sesión
         AnimatedVisibility(visible = showForm == null) {
@@ -159,7 +193,6 @@ private fun LoginContent(
             EmailOptionContent(
                 title = stringResource(R.string.login_text_sign_in_with_email),
                 textButton = stringResource(R.string.login_text_sign_in),
-                error = error,
                 onBack = { showForm = null },
                 onSign = { user, password ->
                     onAction(LoginAction.OnEmailSignIn(user, password))
@@ -176,37 +209,42 @@ private fun LoginContent(
             )
         }
 
-        AnimatedVisibility(visible = showForm == LoginFormType.PHONE) {
 
-            PhoneOptionContent(
-                error = error,
-                onSendPhone = { phoneNumber ->
-                    onAction(LoginAction.OnPhoneSignIn(phoneNumber, context as Activity))
-                },
-                onBack = { showForm = null }
-            )
+        var codeSelected by rememberSaveable { mutableStateOf("+34") }
+        var phone by rememberSaveable { mutableStateOf("") }
 
-            EmailOptionContent(
-                title = stringResource(R.string.login_text_sign_in_with_email),
-                textButton = stringResource(R.string.login_text_sign_in),
-                error = error,
-                onBack = { showForm = null },
-                onSign = { user, password ->
-                    onAction(LoginAction.OnEmailSignIn(user, password))
-                },
-                forgotYourPasswordText = {
-                    ForgotYourPasswordText {}
-                },
-                buttonContent = {
-                    RegisterButton(
-                        onRegister = onRegister,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                },
-            )
+        getActivity()?.let { activity ->
+            // Usar activity, por ejemplo, para Firebase PhoneAuthProvider.verifyPhoneNumber
+            AnimatedVisibility(visible = showForm == LoginFormType.PHONE) {
+
+                PhoneOptionContent(
+                    title = stringResource(R.string.login_text_sign_in_with_phone),
+                    label = stringResource(R.string.login_text_phone),
+                    initialValue = phone,
+                    textButton = stringResource(R.string.login_text_send_code),
+                    isEnabled = (codeSelected + phone.trim()).matches(Regex("^\\+\\d{1,3}\\d{7,15}$")),
+                    error = error,
+                    leadingIconContent = {
+                        Icon(
+                            imageVector = Icons.Default.Phone,
+                            contentDescription = Icons.Default.Phone.toString()
+                        )
+                    },
+                    dropDownContent = { DropDownMenu(onCodeSelected = { codeSelected = it }) },
+                    onInitialValue = { phone = it },
+                    onClick = {
+                        onAction(
+                            LoginAction.OnPhoneSignIn(
+                                codeSelected + phone.trim(),
+                                activity
+                            )
+                        )
+                    },
+                    onBack = { showForm = null }
+                )
+            }
         }
     }
-    if (isLoading) LoadingAnimation()
 }
 
 @Composable
@@ -217,10 +255,17 @@ private fun LoginOptionsContent(
     onFacebookSignIn: () -> Unit,
 ) {
 
-    Column {
+    val containerColor = ButtonDefaults.buttonColors(
+        containerColor = MaterialTheme.colorScheme.onSurface,
+    )
+    val shape = OutlinedTextFieldDefaults.shape
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         // Botón Email
-        OutlinedButton(
+        Button(
             onClick = onShowEmailForm,
+            colors = containerColor,
+            shape = shape,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(45.dp),
@@ -228,17 +273,16 @@ private fun LoginOptionsContent(
             Icon(
                 Icons.Default.Email,
                 contentDescription = stringResource(R.string.login_text_sign_in),
-                tint = Color.Gray
             )
             Spacer(Modifier.width(8.dp))
             Text(text = stringResource(R.string.login_text_sign_in_with_email))
         }
 
-        Spacer(Modifier.height(12.dp))
-
         // Botón Teléfono
-        OutlinedButton(
+        Button(
             onClick = onShowPhoneForm,
+            colors = containerColor,
+            shape = shape,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(45.dp)
@@ -246,17 +290,16 @@ private fun LoginOptionsContent(
             Icon(
                 imageVector = Icons.Default.Phone,
                 contentDescription = stringResource(R.string.login_text_sign_in_with_phone),
-                tint = Color.Gray
             )
             Spacer(Modifier.width(8.dp))
             Text(stringResource(R.string.login_text_sign_in_with_phone))
         }
 
-        Spacer(Modifier.height(12.dp))
-
         // Botón Google
-        OutlinedButton(
+        Button(
             onClick = onGoogleSignIn,
+            colors = containerColor,
+            shape = shape,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(45.dp)
@@ -272,11 +315,12 @@ private fun LoginOptionsContent(
                 else stringResource(R.string.login_text_sign_in_with_google)
             )
         }
-        Spacer(Modifier.height(12.dp))
 
         // Botón Facebook
-        OutlinedButton(
+        Button(
             onClick = onFacebookSignIn,
+            colors = containerColor,
+            shape = shape,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(45.dp)
@@ -290,4 +334,16 @@ private fun LoginOptionsContent(
             Text(stringResource(R.string.login_text_sign_in_with_facebook))
         }
     }
+}
+
+@Composable
+fun getActivity(): Activity? {
+    val context = LocalContext.current
+    return context.findActivity()
+}
+
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is android.content.ContextWrapper -> baseContext.findActivity()
+    else -> null
 }

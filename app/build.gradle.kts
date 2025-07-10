@@ -63,6 +63,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.material3.navigation3)
 
+//    Ccp
+    implementation(libs.ccp)
+
 //    Coil
     implementation(libs.coil.compose)
 

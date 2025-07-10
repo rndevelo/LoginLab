@@ -1,28 +1,26 @@
 package io.rndev.loginlab.login.composables
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -34,63 +32,81 @@ import io.rndev.loginlab.R
 fun EmailOptionContent(
     title: String,
     textButton: String,
-    error: String?,
     onBack: () -> Unit,
     onSign: (String, String) -> Unit = { _, _ -> },
-    passwordTextField: @Composable () -> Unit = {},
+    passwordTextField: @Composable (
+        isPasswordValid: Boolean,
+        localError: Boolean,
+        onLocalError: () -> Unit
+    ) -> Unit = { _, _, _ -> },
     forgotYourPasswordText: @Composable () -> Unit = {},
     buttonContent: @Composable () -> Unit = {},
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+
+    var localError by rememberSaveable { mutableStateOf(false) }
+
+    fun isEmailValid(email: String): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    val isPasswordValid by rememberSaveable(password) { mutableStateOf(password.length >= 8) }
 
     Column(Modifier.animateContentSize()) {
-        // Encabezado con botón atrás
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                    contentDescription = Icons.AutoMirrored.Default.ArrowBack.toString()
-                )
-            }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge
-            )
-        }
+
+        SignInOptionTitle(title = title, onBack = onBack)
 
         Spacer(Modifier.height(16.dp))
 
         // Campo Email
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                localError = false
+            },
             label = { Text(stringResource(R.string.login_text_email)) },
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
             singleLine = true,
-            isError = error != null,
+            isError = !isEmailValid(email) && localError,
+            supportingText = if (!isEmailValid(email) && localError) { // Condición aquí
+                { // Lambda que devuelve el Composable
+                    AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
+                        Text("El email no es válido.")
+                    }
+                }
+            } else {
+                null // Pasar null cuando no hay error
+            },
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email,
-                imeAction = ImeAction.Next
+                keyboardType = KeyboardType.Email, imeAction = ImeAction.Next
             ),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         )
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(8.dp))
 
         // Campo Contraseña
-        passwordTextField()
+        passwordTextField(isPasswordValid, localError, { localError = false })
 
         // Campo Contraseña
         PasswordTextField(
             value = password,
-            error = error,
+            isPasswordValid = isPasswordValid,
+            localError = localError,
             imeAction = ImeAction.Done,
-            onValueChange = { password = it },
-            keyboardActions = KeyboardActions { onSign(email.trim(), password.trim()) }
+            keyboardActions = KeyboardActions {
+                onClickSign(
+                    isValid = isEmailValid(email) && isPasswordValid,
+                    onSign = { onSign(email.trim(), password.trim()) },
+                    onLocalError = { localError = true }
+                )
+            },
+            onValueChange = {
+                password = it
+                localError = false
+            },
         )
 
         forgotYourPasswordText()
@@ -99,14 +115,29 @@ fun EmailOptionContent(
 
         // Botón iniciar sesión
         Button(
-            onClick = { onSign(email.trim(), password.trim()) },
+            onClick = {
+                onClickSign(
+                    isValid = isEmailValid(email) && isPasswordValid,
+                    onSign = { onSign(email.trim(), password.trim()) },
+                    onLocalError = { localError = true }
+                )
+            },
+            enabled = email.isNotBlank() && password.isNotBlank(),
+            shape = OutlinedTextFieldDefaults.shape,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(45.dp)
         ) {
             Text(textButton)
         }
-
         buttonContent()
     }
 }
+
+fun onClickSign(isValid: Boolean, onSign: () -> Unit, onLocalError: () -> Unit) {
+    if (isValid) {
+        onSign()
+    } else {
+        onLocalError()
+    }
+}
+

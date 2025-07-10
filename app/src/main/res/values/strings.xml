@@ -11,13 +11,18 @@
     <string name="login_text_sign_in_with_google">Sign in with Google</string>
     <string name="login_text_sign_in_with_facebook">Sign in with Facebook</string>
     <string name="login_text_sign_in_with_phone">Sign in with Phone</string>
+    <string name="login_text_enter_sms_code">Enter sms code</string>
+    <string name="login_text_phone">Phone</string>
+    <string name="login_text_code">Code</string>
+    <string name="login_text_send_code">Send code</string>
+    <string name="login_text_verify_code">Verify code</string>
     <string name="login_text_create_account">Create account</string>
     <string name="login_text_hide_password">Hide password</string>
     <string name="login_text_show_password">Show password</string>
     <string name="login_text_forgot_your_password">Forgot your password</string>
     <string name="login_text_or">or</string>
 
-    <string name="home_text_user_info_missing">Data for %1$s not available</string>
+    <string name="home_text_user_info_missing">%1$s not available</string>
     <string name="home_text_user_info_email">Email</string>
     <string name="home_text_user_info_uid">UID</string>
     <string name="app_text_user_info_name">Name</string>
@@ -36,5 +41,6 @@
     <string name="facebook_app_id">1023772253242386</string>
     <string name="fb_login_protocol_scheme">fb1023772253242386</string>
     <string name="facebook_client_token">49dc77984201614fd9ff0c8a9e748fb3</string>
+    <string name="login_text_securely_simply_swiftly">Securely. Simply. Swiftly.</string>
 
 </resources>

@@ -16,6 +16,8 @@ import io.rndev.loginlab.register.Register
 import io.rndev.loginlab.register.RegisterScreen
 import io.rndev.loginlab.splash.Splash
 import io.rndev.loginlab.splash.SplashScreen
+import io.rndev.loginlab.verify.Verify
+import io.rndev.loginlab.verify.VerifyScreen
 
 @Composable
 fun Navigation() {
@@ -49,6 +51,7 @@ fun Navigation() {
             entry<Login> {
                 LoginScreen(
                     onRegister = { backStack.add(Register) },
+                    onVerify = { backStack.add(Verify(verificationId = it)) },
                     onHome = {
                         backStack.clear()     // 🔄 Limpia toda la pila
                         backStack.add(Home)
@@ -61,10 +64,17 @@ fun Navigation() {
                     onBack = { backStack.removeLastOrNull() }
                 )
             }
+            entry<Verify> { key ->
+                VerifyScreen(
+                    verificationId = key.verificationId,
+                    onHome = { backStack.add(Home) },
+                    onBack = { backStack.removeLastOrNull() },
+                )
+            }
             entry<Home> {
                 HomeScreen {
                     backStack.clear()
-                    backStack.add(Login)
+                    backStack.add(Splash)
                 }
             }
         }

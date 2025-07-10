@@ -1,12 +1,14 @@
 package io.rndev.loginlab.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,12 +20,14 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -44,6 +48,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import io.rndev.loginlab.Navigation
 import io.rndev.loginlab.R
 import io.rndev.loginlab.composables.LoadingAnimation
 import kotlinx.serialization.Serializable
@@ -69,11 +74,9 @@ fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onLogin: () -> Unit) {
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.app_name)) }
-            )
-        },
+        modifier = Modifier
+            .fillMaxSize()
+            .navigationBarsPadding()
     ) { innerPadding ->
 
         when {
@@ -86,17 +89,42 @@ fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onLogin: () -> Unit) {
             }
 
             loggedIn == true && user != null -> {
-                HomeContent(
-                    uid = user.uid,
-                    email = user.email,
-                    photoUrl = user.photoUrl,
-                    displayName = user.displayName,
-                    phoneNumber = user.phoneNumber,
-                    creationTimestamp = user.creationTimestamp,
-                    lastSignInTimestamp = user.lastSignInTimestamp,
-                    onSignOut = vm::onSignOut,
-                    modifier = Modifier.padding(innerPadding)
-                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .padding(bottom = 32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    HomeContent(
+                        uid = user.uid,
+                        email = user.email,
+                        photoUrl = user.photoUrl,
+                        displayName = user.displayName,
+                        phoneNumber = user.phoneNumber,
+                        creationTimestamp = user.creationTimestamp,
+                        lastSignInTimestamp = user.lastSignInTimestamp,
+                        modifier = Modifier.padding(innerPadding)
+                    )
+
+                    Button(
+                        onClick = vm::onSignOut,
+                        shape = OutlinedTextFieldDefaults.shape,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(45.dp)
+                            .align(Alignment.BottomCenter)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                            contentDescription = stringResource(R.string.home_text_sign_out),
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(stringResource(R.string.home_text_sign_out))
+                    }
+                }
+
             }
 
             else -> LoadingAnimation(modifier = Modifier.padding(innerPadding))
@@ -113,14 +141,10 @@ fun HomeContent(
     phoneNumber: String?,
     creationTimestamp: Long?,
     lastSignInTimestamp: Long?,
-    onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .padding(bottom = 16.dp),
+        modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // --- Cabecera del Perfil ---
@@ -189,24 +213,6 @@ fun HomeContent(
                     value = formatDate(lastSignInTimestamp)
                 )
             }
-        }
-
-        Spacer(modifier = Modifier.weight(1f)) // Empuja el botón hacia abajo
-
-        // --- Botón de Cerrar Sesión ---
-        Button(
-            onClick = onSignOut,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(45.dp)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                contentDescription = stringResource(R.string.home_text_sign_out),
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Text(stringResource(R.string.home_text_sign_out))
         }
     }
 }

@@ -3,6 +3,7 @@ package io.rndev.loginlab
 import android.content.Context
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
+import androidx.lifecycle.SavedStateHandle
 import com.facebook.CallbackManager
 import com.facebook.login.LoginManager
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
@@ -13,10 +14,13 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.android.scopes.ViewModelScoped
 import dagger.hilt.components.SingletonComponent
 import io.rndev.loginlab.data.AuthRepository
 import io.rndev.loginlab.data.AuthRepositoryImpl
+import jakarta.inject.Qualifier
 import javax.inject.Singleton
 
 @Module
@@ -62,3 +66,19 @@ internal class FirebaseAuthModule {
     @Provides
     fun loginManager() = LoginManager.getInstance()
 }
+
+@Module
+@InstallIn(ViewModelComponent::class)
+class VerifyViewModelModule {
+
+    @Provides
+    @ViewModelScoped
+    @VerificationId
+    fun provideVerificationId(savedStateHandle: SavedStateHandle): String {
+        return savedStateHandle["verificationId"] ?: throw IllegalArgumentException("VerificationId is required")
+    }
+}
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class VerificationId
