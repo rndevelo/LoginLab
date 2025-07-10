@@ -1,5 +1,6 @@
 package io.rndev.loginlab.register
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,33 +32,16 @@ class RegisterViewModel @Inject constructor(
     private val _eventChannel = Channel<UiEvent>()
     val events = _eventChannel.receiveAsFlow()
 
-    // Estado combinado para saber si puede navegar
-    val canNavigateToHome: StateFlow<Boolean> = combine(
-        authRepository.isAuthenticated(),
-        authRepository.isEmailVerified()
-    ) { authResult, isVerified ->
-        (authResult as? Result.Success)?.data == true && isVerified
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = false
-    )
-
     fun onSignUp(user: String, password: String) {
         _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch {
-            authRepository.emailSignUp(user, password).collectLatest { result ->
+            authRepository.emailSignUp(user, password).let { result ->
                 when (result) {
                     is Result.Success -> {
-                        _uiState.update { it.copy(isLoading = false, isEmailSent = result.data) }
                         if (result.data) {
-                            authRepository.isEmailVerified().collectLatest { isEmailVerified ->
-                                if (isEmailVerified) {
-                                    _eventChannel.send(UiEvent.ShowEmailVerificationDialog)
-                                }
-
-                            }
+                            _uiState.update { it.copy(isLoading = false, isEmailSent = true) }
+                            onEmailVerified()
                         }
                     }
 
@@ -66,10 +50,20 @@ class RegisterViewModel @Inject constructor(
                         _eventChannel.send(UiEvent.ShowError(result.exception.message ?: "Error desconocido"))
                     }
 
-                    is Result.Loading -> {
-                        _uiState.update { it.copy(isLoading = true) }
-                    }
+                    is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                 }
+            }
+        }
+    }
+
+    private suspend fun onEmailVerified() {
+        authRepository.isEmailVerified().collectLatest { isEmailVerified ->
+            if (isEmailVerified) {
+                _uiState.update { it.copy(isEmailVerified = true) }
+                _eventChannel.send(UiEvent.NavigateToHome)
+            } else {
+                Log.d("EmailSendVerification", "isEmailNotVerified")
+    //                                    _eventChannel.send(UiEvent.ShowEmailVerificationDialog)
             }
         }
     }

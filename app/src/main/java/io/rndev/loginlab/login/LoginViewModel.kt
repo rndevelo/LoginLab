@@ -74,7 +74,7 @@ class LoginViewModel @Inject constructor(
 
     fun onSignIn(user: String, password: String) = viewModelScope.launch {
         viewModelScope.launch {
-            authRepository.emailSignIn(user, password).collectLatest { result ->
+            authRepository.emailSignIn(user, password).let { result ->
                 when (result) {
                     is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                     is Result.Error -> onShowError(result.exception.localizedMessage)

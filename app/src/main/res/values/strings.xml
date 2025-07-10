@@ -22,6 +22,10 @@
     <string name="login_text_forgot_your_password">Forgot your password</string>
     <string name="login_text_or">or</string>
 
+    <string name="login_text_email_sent">Email Sent</string>
+    <string name="login_text_check_your_email_to_verify_your_account">Check your email to verify your account</string>
+
+
     <string name="home_text_user_info_missing">%1$s not available</string>
     <string name="home_text_user_info_email">Email</string>
     <string name="home_text_user_info_uid">UID</string>

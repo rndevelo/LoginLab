@@ -43,34 +43,29 @@ class AuthRepositoryImpl @Inject constructor(val auth: FirebaseAuth) : AuthRepos
         awaitClose()
     }
 
-    override fun emailSignIn(email: String, password: String) = channelFlow {
-
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnSuccessListener {
-                launch {
-                    send(Result.Success(it.user != null))
-                }
+    override suspend fun emailSignIn(email: String, password: String): Result<Boolean> {
+        return try {
+            auth.signInWithEmailAndPassword(email, password).await().let { authResult ->
+                Result.Success(authResult.user != null)
             }
-            .addOnFailureListener {
-                launch {
-                    send(Result.Error(it))
-                }
-            }
-
-        awaitClose()
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 
-    override fun emailSignUp(email: String, password: String) = channelFlow {
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnSuccessListener {
-                emailSendVerification(it)
-            }
-            .addOnFailureListener {
-                launch {
-                    send(Result.Error(it))
+    override suspend fun emailSignUp(email: String, password: String): Result<Boolean> {
+        return try {
+            auth.createUserWithEmailAndPassword(email, password).await().let { authResult ->
+                return try {
+                    authResult.user?.sendEmailVerification()?.await()
+                    Result.Success(true)
+                } catch (e: Exception) {
+                    Result.Error(e)
                 }
             }
-        awaitClose()
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 
     override fun credentialSingIn(credential: AuthCredential) = channelFlow {
