@@ -20,7 +20,7 @@ fun onValidateInputs(state: MutableStateFlow<UiState>, onSign: () -> Unit) {
             passwordError = errors.first { it.first is InputError.PasswordTooShort }.second,
             confirmPasswordError = errors.first { it.first is InputError.PasswordsDoNotMatch }.second,
             localError = true,
-            isLoading = false
+            isLoading = isValid
         )
     }
     Log.d("onValidateInputs", "onValidateInputs: $errors")

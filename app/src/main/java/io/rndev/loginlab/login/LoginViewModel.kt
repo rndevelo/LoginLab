@@ -82,7 +82,7 @@ class LoginViewModel @Inject constructor(
                 when (result) {
                     is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                     is Result.Error -> onShowError(result.exception.localizedMessage)
-                    is Result.Loading -> {}
+                    is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                 }
             }
         }
@@ -101,7 +101,7 @@ class LoginViewModel @Inject constructor(
                             when (result) {
                                 is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                                 is Result.Error -> onShowError(result.exception.localizedMessage)
-                                is Result.Loading -> {}
+                                is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                             }
                         }
                     }
@@ -155,7 +155,7 @@ class LoginViewModel @Inject constructor(
                         when (result) {
                             is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                             is Result.Error -> onShowError(result.exception.localizedMessage)
-                            is Result.Loading -> {}
+                            is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                         }
                     }
             } catch (e: GoogleIdTokenParsingException) {
@@ -184,7 +184,7 @@ class LoginViewModel @Inject constructor(
                                 when (result) {
                                     is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                                     is Result.Error -> onShowError(result.exception.localizedMessage)
-                                    is Result.Loading -> {}
+                                    is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                                 }
                             }
                     }

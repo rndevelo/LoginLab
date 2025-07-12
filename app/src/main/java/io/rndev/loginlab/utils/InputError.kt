@@ -21,8 +21,7 @@ sealed class InputError() {
 
     object PasswordsDoNotMatch : InputError() {
         override fun validate(uiState: UiState): String? {
-            val passwordError = PasswordTooShort.validate(uiState)
-            return if (passwordError == null && uiState.password != uiState.confirmPassword) {
+            return if (uiState.password != uiState.confirmPassword && uiState.confirmPassword.isNotBlank()) {
                 "Las contraseñas no coinciden."
             } else null
         }
