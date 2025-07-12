@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
@@ -47,6 +48,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
@@ -56,6 +58,7 @@ import io.rndev.loginlab.composables.LoadingAnimation
 import io.rndev.loginlab.login.composables.DropDownMenu
 import io.rndev.loginlab.login.composables.EmailOptionContent
 import io.rndev.loginlab.login.composables.ForgotYourPasswordText
+import io.rndev.loginlab.login.composables.PasswordTextField
 import io.rndev.loginlab.login.composables.PhoneOptionContent
 import io.rndev.loginlab.login.composables.RegisterButton
 import kotlinx.serialization.Serializable
@@ -74,7 +77,7 @@ fun LoginScreen(
 ) {
 
     val state = vm.uiState.collectAsState()
-    val error = state.value.error
+    val errorMessage = state.value.errorMessage
     val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -83,6 +86,7 @@ fun LoginScreen(
                 is UiEvent.NavigateToHome -> onHome()
                 is UiEvent.NavigateToVerification -> onVerify(event.verificationId)
                 is UiEvent.ShowError -> snackBarHostState.showSnackbar(event.message)
+                is UiEvent.NavigateToLogin -> TODO()
             }
         }
     }
@@ -104,7 +108,14 @@ fun LoginScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()){
             LoginContent(
-                error = error,
+                email = state.value.email,
+                password = state.value.password,
+                emailError = state.value.emailError,
+                passwordError = state.value.passwordError,
+                localError = state.value.localError,
+                errorMessage = errorMessage,
+                onEmailValueChange = vm::onEmailValueChange,
+                onPasswordValueChange = vm::onPasswordValueChange,
                 onRegister = onRegister,
                 onAction = vm::onAction,
                 onFbActivityResult = {
@@ -120,7 +131,14 @@ fun LoginScreen(
 
 @Composable
 private fun LoginContent(
-    error: String?,
+    email: String,
+    password: String,
+    emailError: String?,
+    passwordError: String?,
+    localError: Boolean,
+    errorMessage: String?,
+    onEmailValueChange: (String) -> Unit,
+    onPasswordValueChange: (String) -> Unit,
     onRegister: () -> Unit,
     onAction: (LoginAction) -> Unit,
     onFbActivityResult: () -> Unit,
@@ -190,12 +208,27 @@ private fun LoginContent(
 
         // Formulario de Email
         AnimatedVisibility(visible = showForm == LoginFormType.EMAIL) {
+
             EmailOptionContent(
                 title = stringResource(R.string.login_text_sign_in_with_email),
                 textButton = stringResource(R.string.login_text_sign_in),
+                email = email,
+                emailError = emailError,
+                password = password,
+                localError = localError,
+                onEmailValueChange = onEmailValueChange,
                 onBack = { showForm = null },
-                onSign = { user, password ->
-                    onAction(LoginAction.OnEmailSignIn(user, password))
+                onCLick = { onAction(LoginAction.OnEmailSignIn) },
+                firstPasswordTextField = {
+                    Spacer(Modifier.height(8.dp))
+                    PasswordTextField(
+                        value = password,
+                        passwordError = passwordError,
+                        localError = localError,
+                        imeAction = ImeAction.Done,
+                        keyboardActions = KeyboardActions { onAction(LoginAction.OnEmailSignIn) },
+                        onValueChange = {  onPasswordValueChange(it) },
+                    )
                 },
                 forgotYourPasswordText = {
                     ForgotYourPasswordText {}
@@ -223,7 +256,7 @@ private fun LoginContent(
                     initialValue = phone,
                     textButton = stringResource(R.string.login_text_send_code),
                     isEnabled = (codeSelected + phone.trim()).matches(Regex("^\\+\\d{1,3}\\d{7,15}$")),
-                    error = error,
+                    error = errorMessage,
                     leadingIconContent = {
                         Icon(
                             imageVector = Icons.Default.Phone,

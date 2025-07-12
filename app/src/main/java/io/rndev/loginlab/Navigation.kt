@@ -53,7 +53,7 @@ fun Navigation() {
                     onRegister = { backStack.add(Register) },
                     onVerify = { backStack.add(Verify(verificationId = it)) },
                     onHome = {
-                        backStack.clear()     // 🔄 Limpia toda la pila
+                        backStack.clear()
                         backStack.add(Home)
                     }
                 )

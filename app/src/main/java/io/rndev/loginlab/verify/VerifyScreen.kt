@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
+import io.rndev.loginlab.UiEvent
 import io.rndev.loginlab.composables.LoadingAnimation
 import io.rndev.loginlab.login.composables.PhoneOptionContent
 import kotlinx.serialization.Serializable
@@ -46,21 +47,17 @@ fun VerifyScreen(
 ) {
 
     val state = vm.uiState.collectAsState()
-    val isLoggedIn = state.value.isLoggedIn
-    val error = state.value.error
     val snackBarHostState = remember { SnackbarHostState() }
     var otpCode by rememberSaveable { mutableStateOf("") }
 
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn == true) {
-            onHome()
-        }
-    }
-
-    LaunchedEffect(error) {
-        if (error != null) {
-            snackBarHostState.showSnackbar(error)
-            vm.onClearError()
+    LaunchedEffect(Unit) {
+        vm.events.collect { event ->
+            when (event) {
+                is UiEvent.NavigateToHome -> onHome()
+                is UiEvent.ShowError -> snackBarHostState.showSnackbar(event.message)
+                is UiEvent.NavigateToVerification -> TODO()
+                is UiEvent.NavigateToLogin -> TODO()
+            }
         }
     }
 
@@ -89,7 +86,7 @@ fun VerifyScreen(
                 initialValue = otpCode,
                 textButton = stringResource(R.string.login_text_verify_code),
                 isEnabled = otpCode.length == 6,
-                error = error,
+                error = state.value.errorMessage,
                 leadingIconContent = {
                     Icon(
                         imageVector = Icons.Default.PhoneAndroid,

@@ -30,7 +30,8 @@ import io.rndev.loginlab.R
 @Composable
 fun PasswordTextField(
     value: String,
-    isPasswordValid: Boolean,
+    passwordError: String? = null,
+    confirmPasswordError: String? = null,
     localError: Boolean,
     imeAction: ImeAction,
     keyboardActions: KeyboardActions = KeyboardActions(),
@@ -61,18 +62,10 @@ fun PasswordTextField(
                     .clickable { isPasswordVisible = !isPasswordVisible }
             )
         },
-        supportingText = if (!isPasswordValid && localError) { // Condición aquí
-            { // Lambda que devuelve el Composable
-                AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
-                    Text("La contraseña debe tener al menos 8 caracteres.")
-                }
-            }
-        } else {
-            null // Pasar null cuando no hay error
-        },
+        supportingText = supportingText(passwordError, localError, confirmPasswordError),
         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         singleLine = true,
-        isError = localError && !isPasswordValid,
+        isError = localError && passwordError != null || localError && confirmPasswordError != null,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password,
             imeAction = imeAction
@@ -80,4 +73,28 @@ fun PasswordTextField(
         keyboardActions = keyboardActions,
         modifier = Modifier.fillMaxWidth()
     )
+}
+
+@Composable
+private fun supportingText(
+    passwordError: String?,
+    localError: Boolean,
+    confirmPasswordError: String?
+): @Composable (() -> Unit)? = when {
+    passwordError != null && localError -> { // Condición aquí
+        {
+            AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
+                Text(passwordError)
+            }
+        }
+    }
+
+    confirmPasswordError != null && localError -> {
+        {
+            AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
+                Text(confirmPasswordError)
+            }
+        }
+    }
+    else -> null // Pasar null cuando no hay error
 }

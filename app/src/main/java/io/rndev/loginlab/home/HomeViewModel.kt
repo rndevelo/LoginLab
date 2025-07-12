@@ -6,7 +6,8 @@ import com.facebook.login.LoginManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.data.AuthRepository
-import io.rndev.loginlab.data.UiState
+import io.rndev.loginlab.data.BaseUiState
+import io.rndev.loginlab.data.User
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -20,33 +21,33 @@ class HomeViewModel @Inject constructor(
     val loginManager: LoginManager
 ) : ViewModel() {
 
-    val uiState: StateFlow<UiState> = combine(
+    val uiState: StateFlow<HomeUiState> = combine(
         authRepository.isAuthenticated(),
         authRepository.currentUser()
     ) { authResult, userResult ->
 
         when {
-            authResult is Result.Error -> UiState(
+            authResult is Result.Error -> HomeUiState().copy(
                 isLoggedIn = false,
-                error = authResult.exception.message
+                errorMessage = authResult.exception.message
             )
 
-            userResult is Result.Error -> UiState(
+            userResult is Result.Error -> HomeUiState().copy(
                 isLoggedIn = false,
-                error = userResult.exception.message
+                errorMessage = userResult.exception.message
             )
 
-            authResult is Result.Success && userResult is Result.Success -> UiState(
+            authResult is Result.Success && userResult is Result.Success -> HomeUiState().copy(
                 isLoggedIn = authResult.data,
                 user = userResult.data
             )
 
-            else -> UiState()
+            else -> HomeUiState()
         }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = UiState()
+        initialValue = HomeUiState()
     )
 
 
@@ -54,5 +55,20 @@ class HomeViewModel @Inject constructor(
         loginManager.logOut()
         authRepository.signOut()
     }
+}
+
+data class HomeUiState(
+    val isLoggedIn: Boolean?,
+    val user: User?,
+    override val isLoading: Boolean?,
+    override val errorMessage: String?
+) : BaseUiState {
+
+    constructor() : this(
+        isLoggedIn = null,
+        user = null,
+        isLoading = null,
+        errorMessage = null
+    )
 }
 

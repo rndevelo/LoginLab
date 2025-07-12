@@ -28,7 +28,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.UiEvent
 import io.rndev.loginlab.data.AuthRepository
-import io.rndev.loginlab.data.UiState
+import io.rndev.loginlab.utils.UiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 sealed interface LoginAction {
-    data class OnEmailSignIn(val user: String, val password: String) : LoginAction
+    data object OnEmailSignIn : LoginAction
     data class OnPhoneSignIn(val phoneNumber: String, val activity: Activity) : LoginAction
     data class OnGoogleSignIn(val context: Context) : LoginAction
     data object OnFacebookSignIn : LoginAction
@@ -65,16 +65,20 @@ class LoginViewModel @Inject constructor(
     fun onAction(action: LoginAction) = viewModelScope.launch {
         _uiState.update { it.copy(isLoading = true) }
         when (action) {
-            is LoginAction.OnEmailSignIn -> onSignIn(action.user, action.password)
+            is LoginAction.OnEmailSignIn -> onValidateInputs()
             is LoginAction.OnPhoneSignIn -> onPhoneSignIn(action.phoneNumber, action.activity)
             is LoginAction.OnGoogleSignIn -> onGoogleSignIn(action.context)
             is LoginAction.OnFacebookSignIn -> onFacebookSignIn()
         }
     }
 
-    fun onSignIn(user: String, password: String) = viewModelScope.launch {
+    fun onValidateInputs() {
+        io.rndev.loginlab.utils.onValidateInputs(_uiState) { onEmailSignIn() }
+    }
+
+    fun onEmailSignIn() = viewModelScope.launch {
         viewModelScope.launch {
-            authRepository.emailSignIn(user, password).let { result ->
+            authRepository.emailSignIn(uiState.value.email, uiState.value.password).let { result ->
                 when (result) {
                     is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                     is Result.Error -> onShowError(result.exception.localizedMessage)
@@ -198,6 +202,24 @@ class LoginViewModel @Inject constructor(
 
     }
 
+    fun onEmailValueChange(value: String) {
+        _uiState.update {
+            it.copy(
+                email = value,
+                localError = false
+            )
+        }
+    }
+
+    fun onPasswordValueChange(value: String) {
+        _uiState.update {
+            it.copy(
+                password = value,
+                localError = false
+            )
+        }
+    }
+
     suspend fun onShowError(error: String?) {
         _uiState.update { it.copy(isLoading = false) }
         _eventChannel.send(
@@ -207,3 +229,4 @@ class LoginViewModel @Inject constructor(
         )
     }
 }
+

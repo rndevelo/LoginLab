@@ -3,14 +3,13 @@ package io.rndev.loginlab.register
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +18,9 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -31,21 +32,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -53,10 +51,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import io.rndev.loginlab.R
 import io.rndev.loginlab.UiEvent
 import io.rndev.loginlab.composables.LoadingAnimation
@@ -75,7 +69,6 @@ fun RegisterScreen(
 ) {
 
     val state = vm.uiState.collectAsState()
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
     val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -84,6 +77,7 @@ fun RegisterScreen(
                 is UiEvent.NavigateToHome -> onHome()
                 is UiEvent.ShowError -> snackBarHostState.showSnackbar(event.message)
                 is UiEvent.NavigateToVerification -> TODO()
+                is UiEvent.NavigateToLogin -> TODO()
             }
         }
     }
@@ -109,64 +103,99 @@ fun RegisterScreen(
 
             EmailOptionContent(
                 title = stringResource(R.string.login_text_sign_up_with_email),
+                email = state.value.email,
+                emailError = state.value.emailError,
+                password = state.value.password,
+                localError = state.value.localError,
+                onEmailValueChange = vm::onEmailValueChange,
                 textButton = stringResource(R.string.login_text_sign_up),
                 onBack = onBack,
-                onSign = vm::onSignUp,
-                passwordTextField = { isPasswordValid, localError, onLocalError ->
+                onCLick = vm::onValidateInputs,
+                firstPasswordTextField = {
 
                     PasswordTextField(
-                        value = confirmPassword,
-                        isPasswordValid = isPasswordValid,
-                        localError = localError,
+                        value = state.value.password,
+                        passwordError = state.value.passwordError,
+                        localError = state.value.localError,
                         imeAction = ImeAction.Next,
-                        onValueChange = {
-                            confirmPassword = it
-                            onLocalError()
-                        },
+                        onValueChange = { vm.onPasswordValueChange(it) },
                     )
+                },
+                secondPasswordTextField = {
 
                     Spacer(Modifier.height(8.dp))
+                    PasswordTextField(
+                        value = state.value.confirmPassword,
+                        confirmPasswordError = state.value.confirmPasswordError,
+                        localError = state.value.localError,
+                        imeAction = ImeAction.Done,
+                        keyboardActions = KeyboardActions { vm.onValidateInputs() },
+                        onValueChange = { vm.onConfirmPasswordValueChange(it) },
+                    )
                 }
             )
         }
         if (state.value.isLoading == true) LoadingAnimation()
 
-        AnimatedVisibility(state.value.isEmailSent == true) {
-            EmailVerificationDialog(isVerified = state.value.isEmailVerified == true)
+        AnimatedVisibility(visible = state.value.isEmailSent == true) {
+            EmailVerificationDialog(
+                isVerified = state.value.isEmailVerified == true,
+                onCompleted = vm::onNavigateToHomeEvent
+            )
         }
     }
 }
 
 @Composable
-fun EmailVerificationDialog(isVerified: Boolean) {
+fun EmailVerificationDialog(
+    isVerified: Boolean,
+    onCompleted: () -> Unit = {}
+) {
     AlertDialog(
         onDismissRequest = {},
         confirmButton = {},
-        title = {
-            Text(
-                text = "Email Sent",
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        },
+
+        // Solo título si no está verificado
+        title = if (!isVerified) {
+            {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.login_text_email_sent),
+                        style = MaterialTheme.typography.titleLarge,
+                    )
+                }
+            }
+        } else null,
+
         text = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "Check your email to verify your account.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
                 if (isVerified) {
-                    LottieCheckAnimation(modifier = Modifier.size(120.dp))
+                    // Diseño simple y elegante para el estado verificado
+                    SimpleCheckWithProgressAnimation(
+                        modifier = Modifier.size(100.dp),
+                        onCompleted = onCompleted
+                    )
+                } else {
+                    // Texto para pedir que revise el email
+                    Text(
+                        text = stringResource(R.string.login_text_check_your_email_to_verify_your_account),
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }
@@ -174,68 +203,59 @@ fun EmailVerificationDialog(isVerified: Boolean) {
 }
 
 @Composable
-fun LottieCheckAnimation(
+fun SimpleCheckWithProgressAnimation(
     modifier: Modifier = Modifier,
-    isPlaying: Boolean = true
+    onCompleted: () -> Unit = {}
 ) {
-    val composition by rememberLottieComposition(LottieCompositionSpec.Asset("email_verified.json"))
-    val progress by animateLottieCompositionAsState(
-        composition = composition,
-        isPlaying = isPlaying,
-        iterations = 1
-    )
+    val progress = remember { Animatable(0f) }
+    val scale = remember { Animatable(0f) }
+    var checkVisible by remember { mutableStateOf(false) }
 
-    LottieAnimation(
-        composition = composition,
-        progress = { progress },
-        modifier = modifier
-    )
-}
+    LaunchedEffect(Unit) {
+        // 1. Círculo se dibuja
+        progress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(durationMillis = 800, easing = LinearEasing)
+        )
 
-@Composable
-fun VerificationAnimation(isVerified: Boolean) {
-    val checkScale = remember { Animatable(0f) }
-    val rotation = remember { Animatable(0f) }
+        // 2. Cuando termina el círculo → mostrar el check
+        checkVisible = true
 
-    LaunchedEffect(isVerified) {
-        if (isVerified) {
-            checkScale.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
-            )
-            rotation.animateTo(
-                targetValue = 360f,
-                animationSpec = tween(durationMillis = 1000, easing = LinearEasing)
-            )
-        }
+        // 3. Escala de aparición y rebote
+        scale.animateTo(1.3f, tween(durationMillis = 150))
+        scale.animateTo(1f, tween(durationMillis = 100))
+
+        onCompleted()
     }
 
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(100.dp)) {
-        // Girando círculo
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        // Círculo progresivo
         Canvas(modifier = Modifier.fillMaxSize()) {
-            rotate(rotation.value) {
-                drawArc(
-                    color = Color(0xFF4CAF50),
-                    startAngle = 0f,
-                    sweepAngle = 270f,
-                    useCenter = false,
-                    style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round)
-                )
-            }
+            drawArc(
+                color = Color(0xFF4CAF50),
+                startAngle = -90f,
+                sweepAngle = 360f * progress.value,
+                useCenter = false,
+                style = Stroke(width = 6.dp.toPx(), cap = StrokeCap.Round)
+            )
         }
 
-        // Icono check que escala
-        Icon(
-            imageVector = Icons.Default.Check,
-            contentDescription = "Verified",
-            tint = Color(0xFF4CAF50),
-            modifier = Modifier
-                .size(48.dp)
-                .graphicsLayer {
-                    scaleX = checkScale.value
-                    scaleY = checkScale.value
-                    alpha = checkScale.value
-                }
-        )
+        // Solo aparece el check cuando el progreso se completa
+        if (checkVisible) {
+            Icon(
+                imageVector = Icons.Default.Check,
+                contentDescription = "Check",
+                tint = Color(0xFF4CAF50),
+                modifier = Modifier
+                    .size(54.dp)
+                    .graphicsLayer {
+                        scaleX = scale.value
+                        scaleY = scale.value
+                    }
+            )
+        }
     }
 }

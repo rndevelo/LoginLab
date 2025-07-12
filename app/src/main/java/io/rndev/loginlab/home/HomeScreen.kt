@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,7 +46,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import io.rndev.loginlab.Navigation
 import io.rndev.loginlab.R
 import io.rndev.loginlab.composables.LoadingAnimation
 import kotlinx.serialization.Serializable
@@ -61,15 +58,16 @@ data object Home : NavKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onLogin: () -> Unit) {
+fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onSplash: () -> Unit) {
 
     val state = vm.uiState.collectAsState()
     val user = state.value.user
     val loggedIn = state.value.isLoggedIn
+    val errorMessage = state.value.errorMessage
 
     LaunchedEffect(loggedIn) {
         if (loggedIn == false) {
-            onLogin()
+            onSplash()
         }
     }
 
@@ -80,10 +78,10 @@ fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onLogin: () -> Unit) {
     ) { innerPadding ->
 
         when {
-            state.value.error != null -> {
+            errorMessage != null -> {
                 ErrorContent(
-                    message = state.value.error ?: stringResource(R.string.app_text_unknown_error),
-                    onRetry = onLogin,
+                    message = errorMessage,
+                    onRetry = onSplash,
                     modifier = Modifier.padding(innerPadding)
                 )
             }
