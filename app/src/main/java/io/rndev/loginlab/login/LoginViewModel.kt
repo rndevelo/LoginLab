@@ -63,7 +63,6 @@ class LoginViewModel @Inject constructor(
     val events = _eventChannel.receiveAsFlow()
 
     fun onAction(action: LoginAction) = viewModelScope.launch {
-        _uiState.update { it.copy(isLoading = true) }
         when (action) {
             is LoginAction.OnEmailSignIn -> onValidateInputs()
             is LoginAction.OnPhoneSignIn -> onPhoneSignIn(action.phoneNumber, action.activity)
@@ -73,6 +72,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onValidateInputs() {
+        _uiState.update { it.copy(isLoading = true) }
         io.rndev.loginlab.utils.onValidateInputs(_uiState) { onEmailSignIn() }
     }
 
@@ -89,6 +89,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onPhoneSignIn(phoneNumber: String, activity: Activity) {
+        _uiState.update { it.copy(isLoading = true) }
         val options = PhoneAuthOptions.newBuilder(firebaseAuth)
             .setPhoneNumber(phoneNumber)
             .setTimeout(60L, TimeUnit.SECONDS)
@@ -128,6 +129,7 @@ class LoginViewModel @Inject constructor(
     }
 
     fun onGoogleSignIn(context: Context) = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true) }
         try {
             val credentialResponse = credentialManager.getCredential(
                 request = credentialRequest,

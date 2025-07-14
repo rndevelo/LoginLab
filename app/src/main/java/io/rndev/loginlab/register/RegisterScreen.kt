@@ -53,7 +53,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
 import io.rndev.loginlab.UiEvent
-import io.rndev.loginlab.composables.LoadingAnimation
 import io.rndev.loginlab.login.composables.EmailOptionContent
 import io.rndev.loginlab.login.composables.PasswordTextField
 import kotlinx.serialization.Serializable
@@ -102,6 +101,7 @@ fun RegisterScreen(
         ) {
 
             EmailOptionContent(
+                isLoading = state.value.isLoading == true,
                 title = stringResource(R.string.login_text_sign_up_with_email),
                 email = state.value.email,
                 emailError = state.value.emailError,
@@ -110,7 +110,7 @@ fun RegisterScreen(
                 onEmailValueChange = vm::onEmailValueChange,
                 textButton = stringResource(R.string.login_text_sign_up),
                 onBack = onBack,
-                onCLick = vm::onValidateInputs,
+                onClick = vm::onValidateInputs,
                 firstPasswordTextField = {
 
                     PasswordTextField(
@@ -135,7 +135,6 @@ fun RegisterScreen(
                 }
             )
         }
-        if (state.value.isLoading == true) LoadingAnimation()
 
         AnimatedVisibility(visible = state.value.isEmailSent == true) {
             EmailVerificationDialog(
@@ -154,8 +153,6 @@ fun EmailVerificationDialog(
     AlertDialog(
         onDismissRequest = {},
         confirmButton = {},
-
-        // Solo título si no está verificado
         title = if (!isVerified) {
             {
                 Row(

@@ -31,7 +31,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
 import io.rndev.loginlab.UiEvent
-import io.rndev.loginlab.composables.LoadingAnimation
 import io.rndev.loginlab.login.composables.PhoneOptionContent
 import kotlinx.serialization.Serializable
 
@@ -41,7 +40,6 @@ data class Verify(val verificationId: String) : NavKey
 @Composable
 fun VerifyScreen(
     vm: VerifyViewModel = hiltViewModel(),
-    verificationId: String,
     onHome: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -81,6 +79,7 @@ fun VerifyScreen(
         ) {
 
             PhoneOptionContent(
+                isLoading = state.value.isLoading == true,
                 title = stringResource(R.string.login_text_enter_sms_code),
                 label = stringResource(R.string.login_text_code),
                 initialValue = otpCode,
@@ -94,15 +93,9 @@ fun VerifyScreen(
                     )
                 },
                 onInitialValue = { otpCode = it.take(6) },
-                onClick = {
-                    vm.onVerifyPhoneNumberWithCode(
-                        verificationId = verificationId,
-                        otpCode = otpCode
-                    )
-                },
-                onBack = onBack
+                onClick = { vm.onVerifyPhoneNumberWithCode(otpCode = otpCode) },
+                onBack = onBack,
             )
         }
-        if (state.value.isLoading == true) LoadingAnimation()
     }
 }

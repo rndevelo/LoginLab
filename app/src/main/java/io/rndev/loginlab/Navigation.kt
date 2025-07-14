@@ -1,6 +1,7 @@
 package io.rndev.loginlab
 
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
@@ -18,6 +19,7 @@ import io.rndev.loginlab.splash.Splash
 import io.rndev.loginlab.splash.SplashScreen
 import io.rndev.loginlab.verify.Verify
 import io.rndev.loginlab.verify.VerifyScreen
+import io.rndev.loginlab.verify.VerifyViewModel
 
 @Composable
 fun Navigation() {
@@ -65,8 +67,13 @@ fun Navigation() {
                 )
             }
             entry<Verify> { key ->
+                val viewModel = hiltViewModel<VerifyViewModel, VerifyViewModel.Factory>(
+                    creationCallback = { factory ->
+                        factory.create(key)
+                    }
+                )
                 VerifyScreen(
-                    verificationId = key.verificationId,
+                    vm = viewModel,
                     onHome = { backStack.add(Home) },
                     onBack = { backStack.removeLastOrNull() },
                 )

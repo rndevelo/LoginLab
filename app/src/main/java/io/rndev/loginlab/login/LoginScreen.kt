@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -25,11 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Science
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -54,13 +51,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
 import io.rndev.loginlab.UiEvent
-import io.rndev.loginlab.composables.LoadingAnimation
 import io.rndev.loginlab.login.composables.DropDownMenu
 import io.rndev.loginlab.login.composables.EmailOptionContent
 import io.rndev.loginlab.login.composables.ForgotYourPasswordText
 import io.rndev.loginlab.login.composables.PasswordTextField
 import io.rndev.loginlab.login.composables.PhoneOptionContent
 import io.rndev.loginlab.login.composables.RegisterButton
+import io.rndev.loginlab.utils.CustomButton
 import kotlinx.serialization.Serializable
 
 enum class LoginFormType { EMAIL, PHONE }
@@ -108,6 +105,7 @@ fun LoginScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()){
             LoginContent(
+                isLoading = state.value.isLoading == true,
                 email = state.value.email,
                 password = state.value.password,
                 emailError = state.value.emailError,
@@ -124,13 +122,13 @@ fun LoginScreen(
                 },
                 modifier = Modifier.padding(innerPadding)
             )
-            if (state.value.isLoading == true) LoadingAnimation()
         }
     }
 }
 
 @Composable
 private fun LoginContent(
+    isLoading: Boolean,
     email: String,
     password: String,
     emailError: String?,
@@ -196,8 +194,8 @@ private fun LoginContent(
         // Tipos de inicio de sesión
         AnimatedVisibility(visible = showForm == null) {
             LoginOptionsContent(
-                onShowEmailForm = { showForm = LoginFormType.EMAIL },
-                onShowPhoneForm = { showForm = LoginFormType.PHONE },
+                isLoading = isLoading,
+                onShowForm = { showForm = it },
                 onGoogleSignIn = { onAction(LoginAction.OnGoogleSignIn(context)) },
                 onFacebookSignIn = {
                     onAction(LoginAction.OnFacebookSignIn)
@@ -210,15 +208,16 @@ private fun LoginContent(
         AnimatedVisibility(visible = showForm == LoginFormType.EMAIL) {
 
             EmailOptionContent(
+                isLoading = isLoading,
                 title = stringResource(R.string.login_text_sign_in_with_email),
-                textButton = stringResource(R.string.login_text_sign_in),
                 email = email,
                 emailError = emailError,
                 password = password,
                 localError = localError,
                 onEmailValueChange = onEmailValueChange,
+                textButton = stringResource(R.string.login_text_sign_in),
                 onBack = { showForm = null },
-                onCLick = { onAction(LoginAction.OnEmailSignIn) },
+                onClick = { onAction(LoginAction.OnEmailSignIn) },
                 firstPasswordTextField = {
                     Spacer(Modifier.height(8.dp))
                     PasswordTextField(
@@ -246,11 +245,13 @@ private fun LoginContent(
         var codeSelected by rememberSaveable { mutableStateOf("+34") }
         var phone by rememberSaveable { mutableStateOf("") }
 
+        // Formulario de Phone
         getActivity()?.let { activity ->
             // Usar activity, por ejemplo, para Firebase PhoneAuthProvider.verifyPhoneNumber
             AnimatedVisibility(visible = showForm == LoginFormType.PHONE) {
 
                 PhoneOptionContent(
+                    isLoading = isLoading,
                     title = stringResource(R.string.login_text_sign_in_with_phone),
                     label = stringResource(R.string.login_text_phone),
                     initialValue = phone,
@@ -282,8 +283,8 @@ private fun LoginContent(
 
 @Composable
 private fun LoginOptionsContent(
-    onShowEmailForm: () -> Unit,
-    onShowPhoneForm: () -> Unit,
+    isLoading: Boolean,
+    onShowForm: (LoginFormType) -> Unit,
     onGoogleSignIn: () -> Unit,
     onFacebookSignIn: () -> Unit,
 ) {
@@ -291,81 +292,73 @@ private fun LoginOptionsContent(
     val containerColor = ButtonDefaults.buttonColors(
         containerColor = MaterialTheme.colorScheme.onSurface,
     )
-    val shape = OutlinedTextFieldDefaults.shape
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         // Botón Email
-        Button(
-            onClick = onShowEmailForm,
-            colors = containerColor,
-            shape = shape,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(45.dp),
-        ) {
-            Icon(
-                Icons.Default.Email,
-                contentDescription = stringResource(R.string.login_text_sign_in),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(text = stringResource(R.string.login_text_sign_in_with_email))
-        }
+
+        CustomButton(
+            onClick = { onShowForm(LoginFormType.EMAIL) },
+            buttonContent = {
+                Icon(
+                    Icons.Default.Email,
+                    contentDescription = stringResource(R.string.login_text_sign_in_with_email),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(text = stringResource(R.string.login_text_sign_in_with_email))
+            },
+            isEnabled = true,
+            colors = containerColor
+        )
 
         // Botón Teléfono
-        Button(
-            onClick = onShowPhoneForm,
-            colors = containerColor,
-            shape = shape,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(45.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Phone,
-                contentDescription = stringResource(R.string.login_text_sign_in_with_phone),
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.login_text_sign_in_with_phone))
-        }
+        CustomButton(
+            onClick = { onShowForm(LoginFormType.PHONE) },
+            buttonContent = {
+                Icon(
+                    Icons.Default.Phone,
+                    contentDescription = stringResource(R.string.login_text_sign_in_with_phone),
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(text = stringResource(R.string.login_text_sign_in_with_phone))
+            },
+            isEnabled = true,
+            colors = containerColor
+        )
 
         // Botón Google
-        Button(
+        CustomButton(
             onClick = onGoogleSignIn,
-            colors = containerColor,
-            shape = shape,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(45.dp)
-        ) {
-            Image(
-                painter = painterResource(R.drawable.ic_google),
-                contentDescription = stringResource(R.string.login_text_sign_in_with_google),
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                if (false) stringResource(R.string.login_text_signing_in)
-                else stringResource(R.string.login_text_sign_in_with_google)
-            )
-        }
+            buttonContent = {
+                Image(
+                    painter = painterResource(R.drawable.ic_google),
+                    contentDescription = stringResource(R.string.login_text_sign_in_with_google),
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    if (isLoading) stringResource(R.string.login_text_signing_in)
+                    else stringResource(R.string.login_text_sign_in_with_google)
+                )
+            },
+            isEnabled = true,
+            colors = containerColor
+        )
 
         // Botón Facebook
-        Button(
+        CustomButton(
             onClick = onFacebookSignIn,
-            colors = containerColor,
-            shape = shape,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(45.dp)
-        ) {
-            Image(
-                painter = painterResource(R.drawable.ic_facebook), // Asegúrate de tener el icono
-                contentDescription = stringResource(R.string.login_text_sign_in_with_facebook),
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(stringResource(R.string.login_text_sign_in_with_facebook))
-        }
+            buttonContent = {
+                Image(
+                    painter = painterResource(R.drawable.ic_facebook), // Asegúrate de tener el icono
+                    contentDescription = stringResource(R.string.login_text_sign_in_with_facebook),
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.login_text_sign_in_with_facebook))
+            },
+            isEnabled = true,
+            colors = containerColor
+        )
     }
 }
 

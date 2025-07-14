@@ -125,7 +125,7 @@ fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onSplash: () -> Unit) {
 
             }
 
-            else -> LoadingAnimation(modifier = Modifier.padding(innerPadding))
+            else -> LoadingAnimation()
         }
     }
 }

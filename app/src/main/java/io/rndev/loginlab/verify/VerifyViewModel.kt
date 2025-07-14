@@ -3,6 +3,9 @@ package io.rndev.loginlab.verify
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.PhoneAuthProvider
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.UiEvent
@@ -15,13 +18,17 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class VerifyViewModel @Inject constructor(
+@HiltViewModel(assistedFactory = VerifyViewModel.Factory::class)
+class VerifyViewModel @AssistedInject constructor(
     private val authRepository: AuthRepository,
-//    @VerificationId private val verificationId: String,
+    @Assisted val navKey: Verify
 ) : ViewModel() {
+
+    @AssistedFactory
+    interface Factory {
+        fun create(navKey: Verify): VerifyViewModel
+    }
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState
@@ -29,27 +36,27 @@ class VerifyViewModel @Inject constructor(
     private val _eventChannel = Channel<UiEvent>()
     val events = _eventChannel.receiveAsFlow()
 
-    fun onVerifyPhoneNumberWithCode(verificationId: String, otpCode: String) = viewModelScope.launch {
-        _uiState.update { it.copy(isLoading = true) }
+    fun onVerifyPhoneNumberWithCode(otpCode: String) = viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
 
-        val credential = PhoneAuthProvider.getCredential(verificationId, otpCode)
+            val credential = PhoneAuthProvider.getCredential(navKey.verificationId, otpCode)
 
-        authRepository.credentialSingIn(credential).collectLatest { result ->
-            when (result) {
-                is Result.Success -> if (result.data) {
-                    _eventChannel.send(UiEvent.NavigateToHome)
-                }
-                is Result.Error -> {
-                    _uiState.update { it.copy(isLoading = false) }
-                    _eventChannel.send(
-                        UiEvent.ShowError(
-                            result.exception.localizedMessage ?: "Error desconocido"
+            authRepository.credentialSingIn(credential).collectLatest { result ->
+                when (result) {
+                    is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
+
+                    is Result.Error -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _eventChannel.send(
+                            UiEvent.ShowError(
+                                result.exception.localizedMessage ?: "Error desconocido"
+                            )
                         )
-                    )
+                    }
+
+                    is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                 }
-                is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
             }
         }
-    }
 }
 

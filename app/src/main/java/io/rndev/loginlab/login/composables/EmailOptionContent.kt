@@ -9,25 +9,23 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.rndev.loginlab.R
+import io.rndev.loginlab.composables.LoadingAnimation
+import io.rndev.loginlab.utils.CustomButton
 
 @Composable
 fun EmailOptionContent(
+    isLoading: Boolean,
     title: String,
     email: String,
     emailError: String?,
@@ -36,7 +34,7 @@ fun EmailOptionContent(
     onEmailValueChange: (String) -> Unit,
     textButton: String,
     onBack: () -> Unit,
-    onCLick: () -> Unit = { },
+    onClick: () -> Unit = { },
     firstPasswordTextField: @Composable () -> Unit,
     secondPasswordTextField: @Composable () -> Unit = {},
     forgotYourPasswordText: @Composable () -> Unit = {},
@@ -83,15 +81,15 @@ fun EmailOptionContent(
         Spacer(Modifier.height(16.dp))
 
         // Botón iniciar sesión
-        Button(
-            onClick = onCLick,
-            enabled = email.isNotBlank() && password.isNotBlank(),
-            shape = OutlinedTextFieldDefaults.shape,
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Text(textButton)
-        }
+        CustomButton(
+            onClick = onClick,
+            buttonContent = {
+                if (isLoading) LoadingAnimation()
+                else Text(textButton)
+            },
+            isEnabled = email.isNotBlank() && password.isNotBlank(),
+        )
+
         buttonContent()
     }
 }

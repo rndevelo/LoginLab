@@ -42,7 +42,7 @@ internal class FirebaseAuthModule {
     @Singleton
     @Provides
     fun googleIdOption() =
-        GetSignInWithGoogleOption.Builder("263101724279-50gq008mptu0rf9r26jc4prcgmp32h6q.apps.googleusercontent.com")
+        GetSignInWithGoogleOption.Builder(BuildConfig.WEB_GOOGLE_ID_CLIENT)
             .build()
 
     // Create the Credential Manager request
@@ -66,19 +66,3 @@ internal class FirebaseAuthModule {
     @Provides
     fun loginManager() = LoginManager.getInstance()
 }
-
-@Module
-@InstallIn(ViewModelComponent::class)
-class VerifyViewModelModule {
-
-    @Provides
-    @ViewModelScoped
-    @VerificationId
-    fun provideVerificationId(savedStateHandle: SavedStateHandle): String {
-        return savedStateHandle["verificationId"] ?: throw IllegalArgumentException("VerificationId is required")
-    }
-}
-
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class VerificationId

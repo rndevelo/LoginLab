@@ -8,9 +8,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,9 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import io.rndev.loginlab.composables.LoadingAnimation
+import io.rndev.loginlab.utils.CustomButton
 
 @Composable
 fun PhoneOptionContent(
+    isLoading: Boolean,
     title: String,
     label: String,
     initialValue: String,
@@ -67,16 +69,14 @@ fun PhoneOptionContent(
 
         Spacer(Modifier.height(16.dp))
 
-        Button(
+        CustomButton(
             onClick = onClick,
-            enabled = isEnabled,
-            shape = OutlinedTextFieldDefaults.shape,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(45.dp)
-        ) {
-            Text(textButton)
-        }
+            buttonContent = {
+                if (isLoading) LoadingAnimation()
+                else Text(textButton)
+            },
+            isEnabled = isEnabled,
+        )
     }
 }
 
