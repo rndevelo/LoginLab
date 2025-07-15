@@ -19,7 +19,7 @@
     <string name="login_text_create_account">Create account</string>
     <string name="login_text_hide_password">Hide password</string>
     <string name="login_text_show_password">Show password</string>
-    <string name="login_text_forgot_your_password">Forgot your password</string>
+    <string name="login_text_forgot_your_password">Forgot your password?</string>
     <string name="login_text_or">or</string>
 
     <string name="login_text_email_sent">Email Sent</string>

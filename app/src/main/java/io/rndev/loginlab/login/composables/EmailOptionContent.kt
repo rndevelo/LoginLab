@@ -45,7 +45,7 @@ fun EmailOptionContent(
 
         SignInOptionTitle(title = title, onBack = onBack)
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
 
         // Campo Email
         OutlinedTextField(
@@ -72,10 +72,8 @@ fun EmailOptionContent(
 
         Spacer(Modifier.height(8.dp))
 
-        // Campo Contraseña
         firstPasswordTextField()
         secondPasswordTextField()
-
         forgotYourPasswordText()
 
         Spacer(Modifier.height(16.dp))

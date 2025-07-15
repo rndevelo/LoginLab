@@ -9,7 +9,7 @@ interface AuthRepository {
     fun isAuthenticated(): Flow<Result<Boolean>>
     suspend fun emailSignIn(email: String, password: String): Result<Boolean>
     suspend fun emailSignUp(email: String, password: String): Result<Boolean>
-    fun credentialSingIn(credential: AuthCredential): Flow<Result<Boolean>>
+    suspend fun credentialSingIn(credential: AuthCredential): Result<Boolean>
     fun isEmailVerified(): Flow<Boolean>
     fun signOut()
 }

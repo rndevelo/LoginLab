@@ -1,13 +1,10 @@
 package io.rndev.loginlab.data
 
-import android.util.Log
 import com.google.firebase.auth.AuthCredential
-import com.google.firebase.auth.AuthResult
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import io.rndev.loginlab.Result
 import jakarta.inject.Inject
-import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -68,19 +65,13 @@ class AuthRepositoryImpl @Inject constructor(val auth: FirebaseAuth) : AuthRepos
         }
     }
 
-    override fun credentialSingIn(credential: AuthCredential) = channelFlow {
-        auth.signInWithCredential(credential)
-            .addOnSuccessListener {
-                launch {
-                    send(Result.Success(it.user != null))
-                }
-            }
-            .addOnFailureListener {
-                launch {
-                    send(Result.Error(it))
-                }
-            }
-        awaitClose()
+    override suspend fun credentialSingIn(credential: AuthCredential): Result<Boolean> {
+        return try {
+            val authResult = auth.signInWithCredential(credential).await()
+            Result.Success(authResult.user != null)
+        } catch (e: Exception) {
+            Result.Error(e)
+        }
     }
 
     override fun isEmailVerified() = flow {
@@ -94,22 +85,6 @@ class AuthRepositoryImpl @Inject constructor(val auth: FirebaseAuth) : AuthRepos
     override fun signOut() {
         auth.signOut()
     }
-}
-
-private fun ProducerScope<Result<Boolean>>.emailSendVerification(result: AuthResult?) {
-    Log.d("EmailSendVerification", "UNIT")
-    result?.user?.sendEmailVerification()?.addOnSuccessListener {
-        launch {
-            Log.d("EmailSendVerification", "true")
-            send(Result.Success(true))
-        }
-    }
-        ?.addOnFailureListener {
-            launch {
-                Log.d("EmailSendVerification", "true")
-                send(Result.Error(it))
-            }
-        }
 }
 
 private fun FirebaseUser.toUser(): User {

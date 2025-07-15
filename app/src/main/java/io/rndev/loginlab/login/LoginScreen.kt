@@ -2,10 +2,10 @@ package io.rndev.loginlab.login
 
 import android.app.Activity
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,7 +21,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material3.ButtonDefaults
@@ -42,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -57,6 +55,7 @@ import io.rndev.loginlab.login.composables.ForgotYourPasswordText
 import io.rndev.loginlab.login.composables.PasswordTextField
 import io.rndev.loginlab.login.composables.PhoneOptionContent
 import io.rndev.loginlab.login.composables.RegisterButton
+import io.rndev.loginlab.login.composables.getLoginButtonConfigs
 import io.rndev.loginlab.utils.CustomButton
 import kotlinx.serialization.Serializable
 
@@ -103,7 +102,7 @@ fun LoginScreen(
             .navigationBarsPadding(),
         snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()){
+        Box(modifier = Modifier.fillMaxSize()) {
             LoginContent(
                 isLoading = state.value.isLoading == true,
                 email = state.value.email,
@@ -117,8 +116,12 @@ fun LoginScreen(
                 onRegister = onRegister,
                 onAction = vm::onAction,
                 onFbActivityResult = {
-                    facebookLoginLauncher.launch(listOf("email", "public_profile"))
-                    vm.onAction(LoginAction.OnFacebookSignIn)
+                    facebookLoginLauncher.launch(
+                        listOf(
+                            "email",
+                            "public_profile"
+                        )
+                    )
                 },
                 modifier = Modifier.padding(innerPadding)
             )
@@ -145,6 +148,9 @@ private fun LoginContent(
     val context = LocalContext.current
     var showForm by remember { mutableStateOf<LoginFormType?>(null) }
 
+    BackHandler(enabled = showForm != null) {
+        showForm = null
+    }
 
     Column(
         modifier = modifier
@@ -197,10 +203,7 @@ private fun LoginContent(
                 isLoading = isLoading,
                 onShowForm = { showForm = it },
                 onGoogleSignIn = { onAction(LoginAction.OnGoogleSignIn(context)) },
-                onFacebookSignIn = {
-                    onAction(LoginAction.OnFacebookSignIn)
-                    onFbActivityResult()
-                }
+                onFacebookSignIn = onFbActivityResult
             )
         }
 
@@ -219,14 +222,13 @@ private fun LoginContent(
                 onBack = { showForm = null },
                 onClick = { onAction(LoginAction.OnEmailSignIn) },
                 firstPasswordTextField = {
-                    Spacer(Modifier.height(8.dp))
                     PasswordTextField(
                         value = password,
                         passwordError = passwordError,
                         localError = localError,
                         imeAction = ImeAction.Done,
                         keyboardActions = KeyboardActions { onAction(LoginAction.OnEmailSignIn) },
-                        onValueChange = {  onPasswordValueChange(it) },
+                        onValueChange = { onPasswordValueChange(it) },
                     )
                 },
                 forgotYourPasswordText = {
@@ -244,6 +246,8 @@ private fun LoginContent(
 
         var codeSelected by rememberSaveable { mutableStateOf("+34") }
         var phone by rememberSaveable { mutableStateOf("") }
+        val fullPhone = codeSelected + phone.trim()
+        val isValidPhone = fullPhone.matches(Regex("^\\+\\d{8,15}$"))
 
         // Formulario de Phone
         getActivity()?.let { activity ->
@@ -256,7 +260,7 @@ private fun LoginContent(
                     label = stringResource(R.string.login_text_phone),
                     initialValue = phone,
                     textButton = stringResource(R.string.login_text_send_code),
-                    isEnabled = (codeSelected + phone.trim()).matches(Regex("^\\+\\d{1,3}\\d{7,15}$")),
+                    isEnabled = isValidPhone,
                     error = errorMessage,
                     leadingIconContent = {
                         Icon(
@@ -266,14 +270,7 @@ private fun LoginContent(
                     },
                     dropDownContent = { DropDownMenu(onCodeSelected = { codeSelected = it }) },
                     onInitialValue = { phone = it },
-                    onClick = {
-                        onAction(
-                            LoginAction.OnPhoneSignIn(
-                                codeSelected + phone.trim(),
-                                activity
-                            )
-                        )
-                    },
+                    onClick = { onAction(LoginAction.OnPhoneSignIn(fullPhone, activity)) },
                     onBack = { showForm = null }
                 )
             }
@@ -288,77 +285,30 @@ private fun LoginOptionsContent(
     onGoogleSignIn: () -> Unit,
     onFacebookSignIn: () -> Unit,
 ) {
-
     val containerColor = ButtonDefaults.buttonColors(
-        containerColor = MaterialTheme.colorScheme.onSurface,
+        containerColor = MaterialTheme.colorScheme.onSurface
+    )
+
+    val buttonConfigs = getLoginButtonConfigs(
+        isLoading = isLoading,
+        onShowForm = onShowForm,
+        onGoogleSignIn = onGoogleSignIn,
+        onFacebookSignIn = onFacebookSignIn
     )
 
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        // Botón Email
-
-        CustomButton(
-            onClick = { onShowForm(LoginFormType.EMAIL) },
-            buttonContent = {
-                Icon(
-                    Icons.Default.Email,
-                    contentDescription = stringResource(R.string.login_text_sign_in_with_email),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(text = stringResource(R.string.login_text_sign_in_with_email))
-            },
-            isEnabled = true,
-            colors = containerColor
-        )
-
-        // Botón Teléfono
-        CustomButton(
-            onClick = { onShowForm(LoginFormType.PHONE) },
-            buttonContent = {
-                Icon(
-                    Icons.Default.Phone,
-                    contentDescription = stringResource(R.string.login_text_sign_in_with_phone),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(text = stringResource(R.string.login_text_sign_in_with_phone))
-            },
-            isEnabled = true,
-            colors = containerColor
-        )
-
-        // Botón Google
-        CustomButton(
-            onClick = onGoogleSignIn,
-            buttonContent = {
-                Image(
-                    painter = painterResource(R.drawable.ic_google),
-                    contentDescription = stringResource(R.string.login_text_sign_in_with_google),
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    if (isLoading) stringResource(R.string.login_text_signing_in)
-                    else stringResource(R.string.login_text_sign_in_with_google)
-                )
-            },
-            isEnabled = true,
-            colors = containerColor
-        )
-
-        // Botón Facebook
-        CustomButton(
-            onClick = onFacebookSignIn,
-            buttonContent = {
-                Image(
-                    painter = painterResource(R.drawable.ic_facebook), // Asegúrate de tener el icono
-                    contentDescription = stringResource(R.string.login_text_sign_in_with_facebook),
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.login_text_sign_in_with_facebook))
-            },
-            isEnabled = true,
-            colors = containerColor
-        )
+        buttonConfigs.forEach { config ->
+            CustomButton(
+                onClick = config.onClick,
+                buttonContent = {
+                    config.icon()
+                    Spacer(Modifier.width(8.dp))
+                    Text(config.text)
+                },
+                isEnabled = true,
+                colors = containerColor
+            )
+        }
     }
 }
 

@@ -42,7 +42,7 @@ fun PhoneOptionContent(
             onBack = onBack
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(8.dp))
 
         Row(
             modifier = Modifier
