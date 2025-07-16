@@ -44,10 +44,10 @@ import io.rndev.loginlab.composables.EmailOptionContent
 import io.rndev.loginlab.composables.PasswordTextField
 import io.rndev.loginlab.composables.PhoneOptionContent
 import io.rndev.loginlab.login.composables.DropDownMenu
-import io.rndev.loginlab.login.composables.ForgotYourPasswordText
+import io.rndev.loginlab.login.composables.ForgotYourPasswordContent
 import io.rndev.loginlab.login.composables.LoginHeaderContent
 import io.rndev.loginlab.login.composables.LoginOptionsContent
-import io.rndev.loginlab.login.composables.RegisterButton
+import io.rndev.loginlab.login.composables.CreateAccountContent
 import io.rndev.loginlab.utils.LoginFormType
 import kotlinx.serialization.Serializable
 
@@ -182,10 +182,10 @@ private fun LoginContent(
                     )
                 },
                 forgotYourPasswordText = {
-                    ForgotYourPasswordText {}
+                    ForgotYourPasswordContent {}
                 },
                 buttonContent = {
-                    RegisterButton(
+                    CreateAccountContent(
                         onRegister = onRegister,
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
