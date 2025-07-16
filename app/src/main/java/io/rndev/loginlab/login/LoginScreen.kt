@@ -146,17 +146,15 @@ private fun LoginContent(
     ) {
 
         AnimatedVisibility(visible = showForm == null) {
-            LoginHeaderContent()
-        }
-
-        // Tipos de inicio de sesión
-        AnimatedVisibility(visible = showForm == null) {
-            LoginOptionsContent(
-                isLoading = isLoading,
-                onShowForm = { showForm = it },
-                onGoogleSignIn = { onAction(LoginAction.OnGoogleSignIn(context)) },
-                onFacebookSignIn = onFbActivityResult
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                LoginHeaderContent()
+                LoginOptionsContent(
+                    isLoading = isLoading,
+                    onShowForm = { showForm = it },
+                    onGoogleSignIn = { onAction(LoginAction.OnGoogleSignIn(context)) },
+                    onFacebookSignIn = onFbActivityResult
+                )
+            }
         }
 
         // Formulario de Email
