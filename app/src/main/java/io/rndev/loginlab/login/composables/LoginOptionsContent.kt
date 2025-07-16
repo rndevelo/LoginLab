@@ -10,8 +10,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.rndev.loginlab.login.LoginFormType
 import io.rndev.loginlab.utils.CustomButton
+import io.rndev.loginlab.utils.LoginFormType
 
 @Composable
 fun LoginOptionsContent(
@@ -31,7 +31,7 @@ fun LoginOptionsContent(
         onFacebookSignIn = onFacebookSignIn
     )
 
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         buttonConfigs.forEach { config ->
             CustomButton(
                 onClick = config.onClick,

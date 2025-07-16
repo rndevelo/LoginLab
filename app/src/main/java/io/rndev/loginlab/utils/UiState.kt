@@ -1,5 +1,7 @@
 package io.rndev.loginlab.utils
 
+enum class LoginFormType { EMAIL, PHONE }
+
 data class UiState(
     val email: String,
     val password: String,
@@ -11,9 +13,9 @@ data class UiState(
     val isEmailSent: Boolean?,
     val isEmailVerified: Boolean?,
     val isLoading: Boolean?,
-    val errorMessage: String?
-
-)  {
+    val errorMessage: String?,
+    val loginFormType: LoginFormType?,
+) {
     constructor() : this(
         email = "",
         password = "",
@@ -25,6 +27,7 @@ data class UiState(
         isEmailSent = null,
         isEmailVerified = null,
         isLoading = null,
-        errorMessage = null
+        errorMessage = null,
+        loginFormType = null,
     )
 }

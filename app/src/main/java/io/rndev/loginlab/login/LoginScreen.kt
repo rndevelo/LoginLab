@@ -48,9 +48,8 @@ import io.rndev.loginlab.login.composables.ForgotYourPasswordText
 import io.rndev.loginlab.login.composables.LoginHeaderContent
 import io.rndev.loginlab.login.composables.LoginOptionsContent
 import io.rndev.loginlab.login.composables.RegisterButton
+import io.rndev.loginlab.utils.LoginFormType
 import kotlinx.serialization.Serializable
-
-enum class LoginFormType { EMAIL, PHONE }
 
 @Serializable
 data object Login : NavKey
@@ -102,12 +101,13 @@ fun LoginScreen(
                 passwordError = state.value.passwordError,
                 localError = state.value.localError,
                 errorMessage = errorMessage,
+                loginFormType = state.value.loginFormType,
                 onRegister = onRegister,
                 onAction = vm::onAction,
                 onFbActivityResult = {
                     facebookLoginLauncher.launch(listOf("email", "public_profile"))
                 },
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
             )
         }
     }
@@ -122,16 +122,16 @@ private fun LoginContent(
     passwordError: String?,
     localError: Boolean,
     errorMessage: String?,
+    loginFormType: LoginFormType?,
     onRegister: () -> Unit,
     onAction: (LoginAction) -> Unit,
     onFbActivityResult: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
-    var showForm by remember { mutableStateOf<LoginFormType?>(null) }
 
-    BackHandler(enabled = showForm != null) {
-        showForm = null
+    BackHandler(enabled = loginFormType != null) {
+        onAction(LoginAction.OnLoginFormTypeChanged(null))
     }
 
     Column(
@@ -145,12 +145,12 @@ private fun LoginContent(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        AnimatedVisibility(visible = showForm == null) {
+        AnimatedVisibility(visible = loginFormType == null) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 LoginHeaderContent()
                 LoginOptionsContent(
                     isLoading = isLoading,
-                    onShowForm = { showForm = it },
+                    onShowForm = { onAction(LoginAction.OnLoginFormTypeChanged(it)) },
                     onGoogleSignIn = { onAction(LoginAction.OnGoogleSignIn(context)) },
                     onFacebookSignIn = onFbActivityResult
                 )
@@ -158,7 +158,7 @@ private fun LoginContent(
         }
 
         // Formulario de Email
-        AnimatedVisibility(visible = showForm == LoginFormType.EMAIL) {
+        AnimatedVisibility(visible = loginFormType == LoginFormType.EMAIL) {
 
             EmailOptionContent(
                 isLoading = isLoading,
@@ -167,9 +167,9 @@ private fun LoginContent(
                 emailError = emailError,
                 password = password,
                 localError = localError,
-                onEmailValueChange = { onAction(LoginAction.EmailChanged(it)) },
+                onEmailValueChange = { onAction(LoginAction.OnEmailChanged(it)) },
                 textButton = stringResource(R.string.login_text_sign_in),
-                onBack = { showForm = null },
+                onBack = { onAction(LoginAction.OnLoginFormTypeChanged(null)) },
                 onClick = { onAction(LoginAction.OnEmailSignIn) },
                 firstPasswordTextField = {
                     PasswordTextField(
@@ -178,7 +178,7 @@ private fun LoginContent(
                         localError = localError,
                         imeAction = ImeAction.Done,
                         keyboardActions = KeyboardActions { onAction(LoginAction.OnEmailSignIn) },
-                        onValueChange = { onAction(LoginAction.PasswordChanged(it)) },
+                        onValueChange = { onAction(LoginAction.OnPasswordChanged(it)) },
                     )
                 },
                 forgotYourPasswordText = {
@@ -202,7 +202,7 @@ private fun LoginContent(
         // Formulario de Phone
         getActivity()?.let { activity ->
             // Usar activity, por ejemplo, para Firebase PhoneAuthProvider.verifyPhoneNumber
-            AnimatedVisibility(visible = showForm == LoginFormType.PHONE) {
+            AnimatedVisibility(visible = loginFormType == LoginFormType.PHONE) {
 
                 PhoneOptionContent(
                     isLoading = isLoading,
@@ -221,7 +221,7 @@ private fun LoginContent(
                     dropDownContent = { DropDownMenu(onCodeSelected = { codeSelected = it }) },
                     onInitialValue = { phone = it },
                     onClick = { onAction(LoginAction.OnPhoneSignIn(fullPhone, activity)) },
-                    onBack = { showForm = null }
+                    onBack = { onAction(LoginAction.OnLoginFormTypeChanged(null)) }
                 )
             }
         }

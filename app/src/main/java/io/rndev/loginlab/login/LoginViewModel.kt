@@ -18,6 +18,7 @@ import io.rndev.loginlab.domain.GoogleSignInUseCase
 import io.rndev.loginlab.domain.PhoneAuthProcessEvent
 import io.rndev.loginlab.domain.SignInWithCredentialUseCase
 import io.rndev.loginlab.domain.StartPhoneAuthVerificationUseCase
+import io.rndev.loginlab.utils.LoginFormType
 import io.rndev.loginlab.utils.UiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,8 +33,9 @@ sealed interface LoginAction {
     data object OnEmailSignIn : LoginAction
     data class OnPhoneSignIn(val phoneNumber: String, val activity: Activity) : LoginAction
     data class OnGoogleSignIn(val context: Context) : LoginAction
-    data class EmailChanged(val email: String) : LoginAction
-    data class PasswordChanged(val password: String) : LoginAction
+    data class OnEmailChanged(val email: String) : LoginAction
+    data class OnPasswordChanged(val password: String) : LoginAction
+    data class OnLoginFormTypeChanged(val formType: LoginFormType?) : LoginAction
 }
 
 @HiltViewModel
@@ -61,11 +63,14 @@ class LoginViewModel @Inject constructor(
             is LoginAction.OnEmailSignIn -> handleEmailSignIn()
             is LoginAction.OnPhoneSignIn -> handlePhoneSignIn(action.phoneNumber, action.activity)
             is LoginAction.OnGoogleSignIn -> handleGoogleSignIn(action.context)
-            is LoginAction.EmailChanged -> _uiState.update {
+            is LoginAction.OnEmailChanged -> _uiState.update {
                 it.copy(email = action.email, localError = false)
             }
-            is LoginAction.PasswordChanged -> _uiState.update {
+            is LoginAction.OnPasswordChanged -> _uiState.update {
                 it.copy(password = action.password, localError = false)
+            }
+            is LoginAction.OnLoginFormTypeChanged -> _uiState.update {
+                it.copy(loginFormType = action.formType)
             }
         }
     }

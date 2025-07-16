@@ -12,7 +12,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.rndev.loginlab.R
-import io.rndev.loginlab.login.LoginFormType
+import io.rndev.loginlab.utils.LoginFormType
 
 data class LoginButtonConfig(
     val icon: @Composable () -> Unit,
