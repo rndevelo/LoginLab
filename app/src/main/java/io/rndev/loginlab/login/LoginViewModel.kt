@@ -2,11 +2,6 @@ package io.rndev.loginlab.login
 
 import android.app.Activity
 import android.content.Context
-import androidx.credentials.Credential
-import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.facebook.CallbackManager
@@ -14,20 +9,15 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
-import com.google.firebase.FirebaseException
 import com.google.firebase.auth.FacebookAuthProvider
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.auth.PhoneAuthCredential
-import com.google.firebase.auth.PhoneAuthOptions
-import com.google.firebase.auth.PhoneAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.UiEvent
-import io.rndev.loginlab.data.AuthRepository
+import io.rndev.loginlab.domain.EmailSignInUseCase
+import io.rndev.loginlab.domain.GoogleSignInUseCase
+import io.rndev.loginlab.domain.PhoneAuthProcessEvent
+import io.rndev.loginlab.domain.SignInWithCredentialUseCase
+import io.rndev.loginlab.domain.StartPhoneAuthVerificationUseCase
 import io.rndev.loginlab.utils.UiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,23 +26,24 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 sealed interface LoginAction {
     data object OnEmailSignIn : LoginAction
     data class OnPhoneSignIn(val phoneNumber: String, val activity: Activity) : LoginAction
     data class OnGoogleSignIn(val context: Context) : LoginAction
+    data class EmailChanged(val email: String) : LoginAction
+    data class PasswordChanged(val password: String) : LoginAction
 }
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val firebaseAuth: FirebaseAuth,
-    private val credentialManager: CredentialManager,
-    private val credentialRequest: GetCredentialRequest,
+    private val emailSignInUseCase: EmailSignInUseCase,
+    private val startPhoneAuthVerificationUseCase: StartPhoneAuthVerificationUseCase,
+    private val signInWithCredentialUseCase: SignInWithCredentialUseCase,
+    private val googleSignInUseCase: GoogleSignInUseCase,
     internal val callbackManager: CallbackManager,
-    val loginManager: LoginManager
+    internal val loginManager: LoginManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UiState())
@@ -62,118 +53,86 @@ class LoginViewModel @Inject constructor(
     val events = _eventChannel.receiveAsFlow()
 
     init {
-        onFacebookSignIn()
+        registerFacebookCallback()
     }
 
     fun onAction(action: LoginAction) {
         when (action) {
-            is LoginAction.OnEmailSignIn -> onValidateInputs()
-            is LoginAction.OnPhoneSignIn -> onPhoneSignIn(action.phoneNumber, action.activity)
-            is LoginAction.OnGoogleSignIn -> onGoogleSignIn(action.context)
+            is LoginAction.OnEmailSignIn -> handleEmailSignIn()
+            is LoginAction.OnPhoneSignIn -> handlePhoneSignIn(action.phoneNumber, action.activity)
+            is LoginAction.OnGoogleSignIn -> handleGoogleSignIn(action.context)
+            is LoginAction.EmailChanged -> _uiState.update {
+                it.copy(email = action.email, localError = false)
+            }
+            is LoginAction.PasswordChanged -> _uiState.update {
+                it.copy(password = action.password, localError = false)
+            }
         }
     }
 
-    private fun onValidateInputs() {
+    private fun handleEmailSignIn() {
         _uiState.update { it.copy(isLoading = true) }
-        io.rndev.loginlab.utils.onValidateInputs(_uiState) { onEmailSignIn() }
-    }
-
-    private fun onEmailSignIn() = viewModelScope.launch {
-        when (val result =
-            authRepository.emailSignIn(uiState.value.email, uiState.value.password)) {
-            is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
-            is Result.Error -> onShowError(result.exception.localizedMessage)
-            is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
+        io.rndev.loginlab.utils.onValidateInputs(_uiState) {
+            viewModelScope.launch {
+                val result = emailSignInUseCase(uiState.value.email, uiState.value.password)
+                when (result) {
+                    is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
+                    is Result.Error -> onShowError(result.exception.localizedMessage)
+                }
+            }
         }
     }
 
-    private fun onPhoneSignIn(phoneNumber: String, activity: Activity) {
+    private fun handlePhoneSignIn(phoneNumber: String, activity: Activity) {
         _uiState.update { it.copy(isLoading = true) }
-        val options = PhoneAuthOptions.newBuilder(firebaseAuth)
-            .setPhoneNumber(phoneNumber)
-            .setTimeout(60L, TimeUnit.SECONDS)
-            .setActivity(activity)
-            .setCallbacks(object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
+        viewModelScope.launch {
+            startPhoneAuthVerificationUseCase(phoneNumber, activity) // Pasar firebaseAuth aquí
+                .collectLatest { event ->
+                    when (event) {
+                        is PhoneAuthProcessEvent.CodeSent -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _eventChannel.send(UiEvent.NavigateToVerification(event.verificationId))
+                        }
 
-                override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                    viewModelScope.launch {
-                        when (val result = authRepository.credentialSingIn(credential)) {
-                            is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
-                            is Result.Error -> onShowError(result.exception.localizedMessage)
-                            is Result.Loading -> {}
+                        is PhoneAuthProcessEvent.VerificationCompleted -> {
+                            val result = event.result
+                            when (result) {
+                                is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
+                                is Result.Error -> onShowError(result.exception.localizedMessage)
+                            }
+                        }
+
+                        is PhoneAuthProcessEvent.VerificationFailed -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            onShowError(event.error.localizedMessage)
                         }
                     }
                 }
-
-                override fun onVerificationFailed(e: FirebaseException) {
-                    viewModelScope.launch {
-                        onShowError(e.localizedMessage)
-                    }
-                }
-
-                override fun onCodeSent(
-                    verificationId: String,
-                    token: PhoneAuthProvider.ForceResendingToken
-                ) {
-                    _uiState.update { it.copy(isLoading = false) }
-                    viewModelScope.launch {
-                        _eventChannel.send(UiEvent.NavigateToVerification(verificationId))
-                    }
-                }
-            }).build()
-
-        PhoneAuthProvider.verifyPhoneNumber(options)
+        }
     }
 
-    private fun onGoogleSignIn(context: Context) = viewModelScope.launch {
+    private fun handleGoogleSignIn(context: Context) {
         _uiState.update { it.copy(isLoading = true) }
-        try {
-            val credentialResponse = credentialManager.getCredential(
-                request = credentialRequest,
-                context = context,
-            )
-            val credential = credentialResponse.credential
-            tryCatchGoogleCredential(credential)
-        } catch (e: GetCredentialCancellationException) {
-            onShowError(e.localizedMessage)
-        }
-    }
-
-    private suspend fun tryCatchGoogleCredential(credential: Credential) {
-
-        if (credential is CustomCredential && credential.type == TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-
-            try {
-                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                val authCredential =
-                    GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
-
-                when (val result = authRepository.credentialSingIn(authCredential)) {
-                    is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
-                    is Result.Error -> onShowError(result.exception.localizedMessage)
-                    is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
-                }
-            } catch (e: GoogleIdTokenParsingException) {
-                onShowError(e.localizedMessage)
+        viewModelScope.launch {
+            when (val result = googleSignInUseCase(context)) {
+                is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
+                is Result.Error -> onShowError(result.exception.localizedMessage)
             }
-        } else {
-            _eventChannel.send(UiEvent.ShowError("Credential is not of type Google ID!"))
         }
     }
 
-    private fun onFacebookSignIn() {
-
+    private fun registerFacebookCallback() {
         loginManager.registerCallback(
             callbackManager,
             object : FacebookCallback<LoginResult> {
                 override fun onSuccess(loginResult: LoginResult) {
-                    val token = loginResult.accessToken.token
-                    val authCredential = FacebookAuthProvider.getCredential(token)
                     viewModelScope.launch {
-                        when (val result = authRepository.credentialSingIn(authCredential)) {
+                        val token = loginResult.accessToken.token
+                        val facebookAuthCredential = FacebookAuthProvider.getCredential(token)
+                        val result = signInWithCredentialUseCase(facebookAuthCredential)
+                        when (result) {
                             is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                             is Result.Error -> onShowError(result.exception.localizedMessage)
-                            is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                         }
                     }
                 }
@@ -187,25 +146,6 @@ class LoginViewModel @Inject constructor(
                 }
             }
         )
-
-    }
-
-    fun onEmailValueChange(value: String) {
-        _uiState.update {
-            it.copy(
-                email = value,
-                localError = false
-            )
-        }
-    }
-
-    fun onPasswordValueChange(value: String) {
-        _uiState.update {
-            it.copy(
-                password = value,
-                localError = false
-            )
-        }
     }
 
     suspend fun onShowError(error: String?) {

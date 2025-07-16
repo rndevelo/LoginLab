@@ -31,7 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
 import io.rndev.loginlab.UiEvent
-import io.rndev.loginlab.login.composables.PhoneOptionContent
+import io.rndev.loginlab.composables.PhoneOptionContent
 import kotlinx.serialization.Serializable
 
 @Serializable

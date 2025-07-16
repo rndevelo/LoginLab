@@ -1,4 +1,4 @@
-package io.rndev.loginlab.login.composables
+package io.rndev.loginlab.composables
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
@@ -62,7 +62,7 @@ fun PasswordTextField(
                     .clickable { isPasswordVisible = !isPasswordVisible }
             )
         },
-        supportingText = supportingText(passwordError, localError, confirmPasswordError),
+        supportingText = passwordSupportingText(passwordError,confirmPasswordError, localError),
         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         singleLine = true,
         isError = localError && passwordError != null || localError && confirmPasswordError != null,
@@ -76,10 +76,10 @@ fun PasswordTextField(
 }
 
 @Composable
-private fun supportingText(
+private fun passwordSupportingText(
     passwordError: String?,
+    confirmPasswordError: String?,
     localError: Boolean,
-    confirmPasswordError: String?
 ): @Composable (() -> Unit)? = when {
     passwordError != null && localError -> { // Condición aquí
         {

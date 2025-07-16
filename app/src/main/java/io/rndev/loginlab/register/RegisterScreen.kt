@@ -53,8 +53,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
 import io.rndev.loginlab.UiEvent
-import io.rndev.loginlab.login.composables.EmailOptionContent
-import io.rndev.loginlab.login.composables.PasswordTextField
+import io.rndev.loginlab.composables.EmailOptionContent
+import io.rndev.loginlab.composables.PasswordTextField
 import kotlinx.serialization.Serializable
 
 @Serializable

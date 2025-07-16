@@ -1,4 +1,4 @@
-package io.rndev.loginlab.login.composables
+package io.rndev.loginlab.composables
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth

@@ -21,19 +21,18 @@ class SplashViewModel @Inject constructor(authRepository: AuthRepository) : View
         viewModelScope.launch {
             authRepository.isAuthenticated().collect { result ->
                 when (result) {
-                    is Result.Success -> {
-                        if (result.data) {
-                            _eventChannel.send(UiEvent.NavigateToHome)
-                        } else {
-                            _eventChannel.send(UiEvent.NavigateToLogin)
-                        }
+                    is Result.Success -> if (result.data) {
+                        _eventChannel.send(UiEvent.NavigateToHome)
+                    } else {
+                        _eventChannel.send(UiEvent.NavigateToLogin)
                     }
 
-                    is Result.Error -> {
-                        _eventChannel.send(UiEvent.ShowError(result.exception.message ?: "Error desconocido"))
-                    }
 
-                    is Result.Loading -> {}
+                    is Result.Error -> _eventChannel.send(
+                        UiEvent.ShowError(
+                            result.exception.message ?: "Error desconocido"
+                        )
+                    )
                 }
             }
         }

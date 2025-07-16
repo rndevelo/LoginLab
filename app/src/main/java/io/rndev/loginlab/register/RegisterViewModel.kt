@@ -38,10 +38,7 @@ class RegisterViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.emailSignUp(uiState.value.email, uiState.value.password).let { result ->
                 when (result) {
-                    is Result.Success -> if (result.data) {
-                        onEmailVerified()
-                    }
-
+                    is Result.Success -> onEmailVerified()
                     is Result.Error -> {
                         _uiState.update { it.copy(isLoading = false) }
                         _eventChannel.send(
@@ -50,8 +47,6 @@ class RegisterViewModel @Inject constructor(
                             )
                         )
                     }
-
-                    is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
                 }
             }
         }

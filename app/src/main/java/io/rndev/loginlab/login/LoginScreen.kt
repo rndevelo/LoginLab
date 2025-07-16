@@ -9,27 +9,19 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.Science
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,21 +34,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
 import io.rndev.loginlab.UiEvent
+import io.rndev.loginlab.composables.EmailOptionContent
+import io.rndev.loginlab.composables.PasswordTextField
+import io.rndev.loginlab.composables.PhoneOptionContent
 import io.rndev.loginlab.login.composables.DropDownMenu
-import io.rndev.loginlab.login.composables.EmailOptionContent
 import io.rndev.loginlab.login.composables.ForgotYourPasswordText
-import io.rndev.loginlab.login.composables.PasswordTextField
-import io.rndev.loginlab.login.composables.PhoneOptionContent
+import io.rndev.loginlab.login.composables.LoginHeaderContent
+import io.rndev.loginlab.login.composables.LoginOptionsContent
 import io.rndev.loginlab.login.composables.RegisterButton
-import io.rndev.loginlab.login.composables.getLoginButtonConfigs
-import io.rndev.loginlab.utils.CustomButton
 import kotlinx.serialization.Serializable
 
 enum class LoginFormType { EMAIL, PHONE }
@@ -111,17 +102,10 @@ fun LoginScreen(
                 passwordError = state.value.passwordError,
                 localError = state.value.localError,
                 errorMessage = errorMessage,
-                onEmailValueChange = vm::onEmailValueChange,
-                onPasswordValueChange = vm::onPasswordValueChange,
                 onRegister = onRegister,
                 onAction = vm::onAction,
                 onFbActivityResult = {
-                    facebookLoginLauncher.launch(
-                        listOf(
-                            "email",
-                            "public_profile"
-                        )
-                    )
+                    facebookLoginLauncher.launch(listOf("email", "public_profile"))
                 },
                 modifier = Modifier.padding(innerPadding)
             )
@@ -138,8 +122,6 @@ private fun LoginContent(
     passwordError: String?,
     localError: Boolean,
     errorMessage: String?,
-    onEmailValueChange: (String) -> Unit,
-    onPasswordValueChange: (String) -> Unit,
     onRegister: () -> Unit,
     onAction: (LoginAction) -> Unit,
     onFbActivityResult: () -> Unit,
@@ -164,37 +146,7 @@ private fun LoginContent(
     ) {
 
         AnimatedVisibility(visible = showForm == null) {
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(
-                    imageVector = Icons.Filled.Science,
-                    contentDescription = stringResource(R.string.app_name),
-                    modifier = Modifier.size(72.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                // Título
-                Text(
-                    text = stringResource(R.string.app_name), // O usa stringResource(R.string.app_name)
-                    style = MaterialTheme.typography.headlineLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                Text(
-                    text = stringResource(R.string.login_text_securely_simply_swiftly),
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-
-                Spacer(Modifier.height(24.dp))
-            }
+            LoginHeaderContent()
         }
 
         // Tipos de inicio de sesión
@@ -217,7 +169,7 @@ private fun LoginContent(
                 emailError = emailError,
                 password = password,
                 localError = localError,
-                onEmailValueChange = onEmailValueChange,
+                onEmailValueChange = { onAction(LoginAction.EmailChanged(it)) },
                 textButton = stringResource(R.string.login_text_sign_in),
                 onBack = { showForm = null },
                 onClick = { onAction(LoginAction.OnEmailSignIn) },
@@ -228,7 +180,7 @@ private fun LoginContent(
                         localError = localError,
                         imeAction = ImeAction.Done,
                         keyboardActions = KeyboardActions { onAction(LoginAction.OnEmailSignIn) },
-                        onValueChange = { onPasswordValueChange(it) },
+                        onValueChange = { onAction(LoginAction.PasswordChanged(it)) },
                     )
                 },
                 forgotYourPasswordText = {
@@ -274,40 +226,6 @@ private fun LoginContent(
                     onBack = { showForm = null }
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun LoginOptionsContent(
-    isLoading: Boolean,
-    onShowForm: (LoginFormType) -> Unit,
-    onGoogleSignIn: () -> Unit,
-    onFacebookSignIn: () -> Unit,
-) {
-    val containerColor = ButtonDefaults.buttonColors(
-        containerColor = MaterialTheme.colorScheme.onSurface
-    )
-
-    val buttonConfigs = getLoginButtonConfigs(
-        isLoading = isLoading,
-        onShowForm = onShowForm,
-        onGoogleSignIn = onGoogleSignIn,
-        onFacebookSignIn = onFacebookSignIn
-    )
-
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        buttonConfigs.forEach { config ->
-            CustomButton(
-                onClick = config.onClick,
-                buttonContent = {
-                    config.icon()
-                    Spacer(Modifier.width(8.dp))
-                    Text(config.text)
-                },
-                isEnabled = true,
-                colors = containerColor
-            )
         }
     }
 }

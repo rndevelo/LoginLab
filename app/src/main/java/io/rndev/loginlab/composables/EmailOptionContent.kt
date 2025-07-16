@@ -1,4 +1,4 @@
-package io.rndev.loginlab.login.composables
+package io.rndev.loginlab.composables
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -20,7 +19,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.rndev.loginlab.R
-import io.rndev.loginlab.composables.LoadingAnimation
 import io.rndev.loginlab.utils.CustomButton
 
 @Composable
@@ -53,15 +51,7 @@ fun EmailOptionContent(
             onValueChange = { onEmailValueChange(it) },
             label = { Text(stringResource(R.string.login_text_email)) },
             leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-            supportingText = if (emailError != null && localError) { // Condición aquí
-                { // Lambda que devuelve el Composable
-                    AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
-                        Text(emailError)
-                    }
-                }
-            } else {
-                null // Pasar null cuando no hay error
-            },
+            supportingText = emailSupportingText(emailError, localError),
             singleLine = true,
             isError = emailError != null && localError,
             keyboardOptions = KeyboardOptions(
@@ -90,4 +80,18 @@ fun EmailOptionContent(
 
         buttonContent()
     }
+}
+
+@Composable
+private fun emailSupportingText(
+    emailError: String?,
+    localError: Boolean
+): @Composable (() -> Unit)? = if (emailError != null && localError) { // Condición aquí
+    {
+        AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
+            Text(emailError)
+        }
+    }
+} else {
+    null // Pasar null cuando no hay error
 }

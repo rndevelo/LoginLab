@@ -14,7 +14,6 @@ import io.rndev.loginlab.utils.UiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -37,26 +36,21 @@ class VerifyViewModel @AssistedInject constructor(
     val events = _eventChannel.receiveAsFlow()
 
     fun onVerifyPhoneNumberWithCode(otpCode: String) = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true) }
 
-            val credential = PhoneAuthProvider.getCredential(navKey.verificationId, otpCode)
+        val credential = PhoneAuthProvider.getCredential(navKey.verificationId, otpCode)
 
-            authRepository.credentialSingIn(credential).collectLatest { result ->
-                when (result) {
-                    is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
-
-                    is Result.Error -> {
-                        _uiState.update { it.copy(isLoading = false) }
-                        _eventChannel.send(
-                            UiEvent.ShowError(
-                                result.exception.localizedMessage ?: "Error desconocido"
-                            )
-                        )
-                    }
-
-                    is Result.Loading -> _uiState.update { it.copy(isLoading = true) }
-                }
+        when (val result = authRepository.credentialSingIn(credential)) {
+            is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
+            is Result.Error -> {
+                _uiState.update { it.copy(isLoading = false) }
+                _eventChannel.send(
+                    UiEvent.ShowError(
+                        result.exception.localizedMessage ?: "Error desconocido"
+                    )
+                )
             }
         }
+    }
 }
 
