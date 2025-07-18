@@ -5,9 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.facebook.login.LoginManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
-import io.rndev.loginlab.data.AuthRepository
-import io.rndev.loginlab.data.BaseUiState
-import io.rndev.loginlab.data.User
+import io.rndev.loginlab.domain.AuthRepository
+import io.rndev.loginlab.BaseUiState
+import io.rndev.loginlab.domain.User
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine

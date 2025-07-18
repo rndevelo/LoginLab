@@ -13,11 +13,9 @@ import com.google.firebase.auth.FacebookAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.UiEvent
-import io.rndev.loginlab.domain.EmailSignInUseCase
-import io.rndev.loginlab.domain.GoogleSignInUseCase
-import io.rndev.loginlab.domain.PhoneAuthProcessEvent
-import io.rndev.loginlab.domain.SignInWithCredentialUseCase
-import io.rndev.loginlab.domain.StartPhoneAuthVerificationUseCase
+import io.rndev.loginlab.data.datasources.PhoneAuthProcessEvent
+import io.rndev.loginlab.domain.AuthRepository
+import io.rndev.loginlab.domain.CredentialRepository
 import io.rndev.loginlab.utils.LoginFormType
 import io.rndev.loginlab.utils.UiState
 import kotlinx.coroutines.channels.Channel
@@ -40,10 +38,8 @@ sealed interface LoginAction {
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val emailSignInUseCase: EmailSignInUseCase,
-    private val startPhoneAuthVerificationUseCase: StartPhoneAuthVerificationUseCase,
-    private val signInWithCredentialUseCase: SignInWithCredentialUseCase,
-    private val googleSignInUseCase: GoogleSignInUseCase,
+    private val authRepository: AuthRepository,
+    private val credentialRepository: CredentialRepository,
     internal val callbackManager: CallbackManager,
     internal val loginManager: LoginManager
 ) : ViewModel() {
@@ -79,7 +75,7 @@ class LoginViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true) }
         io.rndev.loginlab.utils.onValidateInputs(_uiState) {
             viewModelScope.launch {
-                val result = emailSignInUseCase(uiState.value.email, uiState.value.password)
+                val result = authRepository.emailSignIn(uiState.value.email, uiState.value.password)
                 when (result) {
                     is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                     is Result.Error -> onShowError(result.exception.localizedMessage)
@@ -91,7 +87,7 @@ class LoginViewModel @Inject constructor(
     private fun handlePhoneSignIn(phoneNumber: String, activity: Activity) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            startPhoneAuthVerificationUseCase(phoneNumber, activity) // Pasar firebaseAuth aquí
+            credentialRepository.getPhoneAuthProcessEvent(phoneNumber, activity, 60L) // Pasar firebaseAuth aquí
                 .collectLatest { event ->
                     when (event) {
                         is PhoneAuthProcessEvent.CodeSent -> {
@@ -100,7 +96,7 @@ class LoginViewModel @Inject constructor(
                         }
 
                         is PhoneAuthProcessEvent.VerificationCompleted -> {
-                            val result = event.result
+                            val result = authRepository.credentialSingIn(event.result)
                             when (result) {
                                 is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                                 is Result.Error -> onShowError(result.exception.localizedMessage)
@@ -119,9 +115,15 @@ class LoginViewModel @Inject constructor(
     private fun handleGoogleSignIn(context: Context) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            when (val result = googleSignInUseCase(context)) {
-                is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
-                is Result.Error -> onShowError(result.exception.localizedMessage)
+            val credential = credentialRepository.getGoogleCredential(context)
+            when (credential) {
+                is Result.Success -> {
+                    when (val result = authRepository.credentialSingIn(credential.data)) {
+                        is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
+                        is Result.Error -> onShowError(result.exception.localizedMessage)
+                    }
+                }
+                is Result.Error -> onShowError(credential.exception.localizedMessage)
             }
         }
     }
@@ -133,9 +135,8 @@ class LoginViewModel @Inject constructor(
                 override fun onSuccess(loginResult: LoginResult) {
                     viewModelScope.launch {
                         val token = loginResult.accessToken.token
-                        val facebookAuthCredential = FacebookAuthProvider.getCredential(token)
-                        val result = signInWithCredentialUseCase(facebookAuthCredential)
-                        when (result) {
+                        val credential = credentialRepository.getFacebookCredential(token)
+                        when (val result = authRepository.credentialSingIn(credential)) {
                             is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
                             is Result.Error -> onShowError(result.exception.localizedMessage)
                         }

@@ -1,4 +1,4 @@
-package io.rndev.loginlab.data
+package io.rndev.loginlab.domain
 
 data class User(
     val uid: String?,

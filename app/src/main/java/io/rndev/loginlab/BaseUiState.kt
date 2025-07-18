@@ -1,4 +1,4 @@
-package io.rndev.loginlab.data
+package io.rndev.loginlab
 
 interface BaseUiState {
     val isLoading: Boolean?

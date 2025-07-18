@@ -1,8 +1,8 @@
-package io.rndev.loginlab.data
+package io.rndev.loginlab.domain
 
 import com.google.firebase.auth.AuthCredential
-import kotlinx.coroutines.flow.Flow
 import io.rndev.loginlab.Result
+import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
     fun currentUser(): Flow<Result<User>>

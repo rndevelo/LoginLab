@@ -9,7 +9,7 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.UiEvent
-import io.rndev.loginlab.data.AuthRepository
+import io.rndev.loginlab.domain.AuthRepository
 import io.rndev.loginlab.utils.UiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

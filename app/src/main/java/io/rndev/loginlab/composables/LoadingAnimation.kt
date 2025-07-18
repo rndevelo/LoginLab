@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun LoadingAnimation() {
     CircularProgressIndicator(
-        modifier = Modifier.size(30.dp),
-        color = MaterialTheme.colorScheme.onPrimary
+        modifier = Modifier.size(28.dp),
+        color = MaterialTheme.colorScheme.onPrimary,
     )
 }
