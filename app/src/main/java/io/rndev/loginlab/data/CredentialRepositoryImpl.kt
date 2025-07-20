@@ -16,7 +16,7 @@ class CredentialRepositoryImpl @Inject constructor(
         phoneNumber: String,
         activity: Activity,
         timeoutSeconds: Long
-    ) = authRemoteDataSource.getPhoneAuthProcessEvent(phoneNumber, activity, timeoutSeconds)
+    ) = authRemoteDataSource.getPhoneAuthProcessEvent(phoneNumber, activity)
 
     override fun getFacebookCredential(token: String) = authRemoteDataSource.getFacebookCredential(token)
 }

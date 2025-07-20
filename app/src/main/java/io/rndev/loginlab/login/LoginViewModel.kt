@@ -9,13 +9,14 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
-import com.google.firebase.auth.FacebookAuthProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.UiEvent
+import io.rndev.loginlab.UiEvent.NavigateToHome
+import io.rndev.loginlab.UiEvent.NavigateToVerification
+import io.rndev.loginlab.UiEvent.ShowError
 import io.rndev.loginlab.data.datasources.PhoneAuthProcessEvent
 import io.rndev.loginlab.domain.AuthRepository
-import io.rndev.loginlab.domain.CredentialRepository
 import io.rndev.loginlab.utils.LoginFormType
 import io.rndev.loginlab.utils.UiState
 import kotlinx.coroutines.channels.Channel
@@ -39,7 +40,6 @@ sealed interface LoginAction {
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val credentialRepository: CredentialRepository,
     internal val callbackManager: CallbackManager,
     internal val loginManager: LoginManager
 ) : ViewModel() {
@@ -62,9 +62,11 @@ class LoginViewModel @Inject constructor(
             is LoginAction.OnEmailChanged -> _uiState.update {
                 it.copy(email = action.email, localError = false)
             }
+
             is LoginAction.OnPasswordChanged -> _uiState.update {
                 it.copy(password = action.password, localError = false)
             }
+
             is LoginAction.OnLoginFormTypeChanged -> _uiState.update {
                 it.copy(loginFormType = action.formType)
             }
@@ -77,7 +79,7 @@ class LoginViewModel @Inject constructor(
             viewModelScope.launch {
                 val result = authRepository.emailSignIn(uiState.value.email, uiState.value.password)
                 when (result) {
-                    is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
+                    is Result.Success -> _eventChannel.send(NavigateToHome)
                     is Result.Error -> onShowError(result.exception.localizedMessage)
                 }
             }
@@ -87,26 +89,24 @@ class LoginViewModel @Inject constructor(
     private fun handlePhoneSignIn(phoneNumber: String, activity: Activity) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            credentialRepository.getPhoneAuthProcessEvent(phoneNumber, activity, 60L) // Pasar firebaseAuth aquí
-                .collectLatest { event ->
-                    when (event) {
-                        is PhoneAuthProcessEvent.CodeSent -> {
-                            _uiState.update { it.copy(isLoading = false) }
-                            _eventChannel.send(UiEvent.NavigateToVerification(event.verificationId))
-                        }
+            authRepository.phoneSingIn(phoneNumber, activity) // Pasar firebaseAuth aquí
+                .collectLatest { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            when (val event = result.data) {
+                                is PhoneAuthProcessEvent.VerificationCompleted -> _eventChannel.send(
+                                    NavigateToHome
+                                )
 
-                        is PhoneAuthProcessEvent.VerificationCompleted -> {
-                            val result = authRepository.credentialSingIn(event.result)
-                            when (result) {
-                                is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
-                                is Result.Error -> onShowError(result.exception.localizedMessage)
+                                is PhoneAuthProcessEvent.VerificationFailed -> onShowError(event.error.localizedMessage)
+                                is PhoneAuthProcessEvent.CodeSent -> _eventChannel.send(
+                                    NavigateToVerification(event.verificationId)
+                                )
+
                             }
                         }
 
-                        is PhoneAuthProcessEvent.VerificationFailed -> {
-                            _uiState.update { it.copy(isLoading = false) }
-                            onShowError(event.error.localizedMessage)
-                        }
+                        is Result.Error -> onShowError(result.exception.localizedMessage)
                     }
                 }
         }
@@ -115,15 +115,9 @@ class LoginViewModel @Inject constructor(
     private fun handleGoogleSignIn(context: Context) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            val credential = credentialRepository.getGoogleCredential(context)
-            when (credential) {
-                is Result.Success -> {
-                    when (val result = authRepository.credentialSingIn(credential.data)) {
-                        is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
-                        is Result.Error -> onShowError(result.exception.localizedMessage)
-                    }
-                }
-                is Result.Error -> onShowError(credential.exception.localizedMessage)
+            when (val result = authRepository.googleSingIn(context)) {
+                is Result.Success -> _eventChannel.send(NavigateToHome)
+                is Result.Error -> onShowError(result.exception.localizedMessage)
             }
         }
     }
@@ -135,9 +129,8 @@ class LoginViewModel @Inject constructor(
                 override fun onSuccess(loginResult: LoginResult) {
                     viewModelScope.launch {
                         val token = loginResult.accessToken.token
-                        val credential = credentialRepository.getFacebookCredential(token)
-                        when (val result = authRepository.credentialSingIn(credential)) {
-                            is Result.Success -> _eventChannel.send(UiEvent.NavigateToHome)
+                        when (val result = authRepository.facebookSingIn(token)) {
+                            is Result.Success -> _eventChannel.send(NavigateToHome)
                             is Result.Error -> onShowError(result.exception.localizedMessage)
                         }
                     }
@@ -157,7 +150,7 @@ class LoginViewModel @Inject constructor(
     suspend fun onShowError(error: String?) {
         _uiState.update { it.copy(isLoading = false) }
         _eventChannel.send(
-            UiEvent.ShowError(
+            ShowError(
                 error ?: "Unknown error"
             )
         )

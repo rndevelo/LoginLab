@@ -55,7 +55,6 @@ class FirebaseCredentialDataSource @Inject constructor(
     override fun getPhoneAuthProcessEvent(
         phoneNumber: String,
         activity: Activity,
-        timeoutSeconds: Long // Hacerlo configurable es una buena práctica
     ): Flow<PhoneAuthProcessEvent> = callbackFlow {
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
@@ -76,7 +75,7 @@ class FirebaseCredentialDataSource @Inject constructor(
 
         val options = PhoneAuthOptions.newBuilder(firebaseAuth)
             .setPhoneNumber(phoneNumber)
-            .setTimeout(timeoutSeconds, TimeUnit.SECONDS)
+            .setTimeout(60L, TimeUnit.SECONDS)
             .setActivity(activity)
             .setCallbacks(callbacks)
             .build()

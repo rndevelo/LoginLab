@@ -8,6 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface CredentialRemoteDataSource {
     suspend fun getGoogleCredential(context: Context): Result<AuthCredential>
-    fun getPhoneAuthProcessEvent(phoneNumber: String, activity: Activity, timeoutSeconds: Long): Flow<PhoneAuthProcessEvent>
+    fun getPhoneAuthProcessEvent(phoneNumber: String, activity: Activity): Flow<PhoneAuthProcessEvent>
     fun getFacebookCredential(token: String): AuthCredential
 }
