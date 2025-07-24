@@ -69,6 +69,9 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
+//    Splash
+    implementation(libs.androidx.core.splashscreen)
+
 //    Navigation3
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)

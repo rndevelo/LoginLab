@@ -3,7 +3,7 @@ package io.rndev.loginlab.data.datasources
 import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import io.rndev.loginlab.Result
+import io.rndev.loginlab.domain.Result
 import io.rndev.loginlab.domain.User
 import jakarta.inject.Inject
 import kotlinx.coroutines.channels.awaitClose

@@ -17,7 +17,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
-import io.rndev.loginlab.Result
+import io.rndev.loginlab.domain.Result
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -31,6 +31,7 @@ sealed interface PhoneAuthProcessEvent {
 }
 
 class FirebaseCredentialDataSource @Inject constructor(
+
     private val credentialManager: CredentialManager,
     private val getCredentialRequest: GetCredentialRequest,
     private val firebaseAuth: FirebaseAuth,
@@ -86,6 +87,11 @@ class FirebaseCredentialDataSource @Inject constructor(
     }
 
     override fun getFacebookCredential(token: String) = FacebookAuthProvider.getCredential(token)
+
+    override fun getVerifyPhoneCredential(
+        verificationId: String,
+        otpCode: String
+    ): AuthCredential = PhoneAuthProvider.getCredential(verificationId, otpCode)
 }
 
 private fun googleCredentialResult(credential: Credential): Result<AuthCredential> =

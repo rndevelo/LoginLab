@@ -2,10 +2,7 @@ package io.rndev.loginlab.data
 
 import android.app.Activity
 import android.content.Context
-import androidx.compose.ui.semantics.error
-import com.google.firebase.FirebaseException
-import com.google.firebase.auth.AuthCredential
-import io.rndev.loginlab.Result
+import io.rndev.loginlab.domain.Result
 import io.rndev.loginlab.data.datasources.AuthRemoteDataSource
 import io.rndev.loginlab.data.datasources.CredentialRemoteDataSource
 import io.rndev.loginlab.data.datasources.PhoneAuthProcessEvent
@@ -14,7 +11,6 @@ import io.rndev.loginlab.domain.User
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.transformLatest
 
 //Implementación del repositorio de autenticación
@@ -46,12 +42,6 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    sealed interface PhoneAuthProcessResult {
-        data object VerificationCompleted : PhoneAuthProcessResult
-        data class VerificationFailed(val error: FirebaseException) : PhoneAuthProcessResult
-        data class CodeSent(val verificationId: String) : PhoneAuthProcessResult
-    }
-
     override suspend fun phoneSingIn(
         phoneNumber: String,
         activity: Activity
@@ -65,7 +55,8 @@ class AuthRepositoryImpl @Inject constructor(
                     is PhoneAuthProcessEvent.VerificationCompleted -> {
                         // dataSourceEvent.result es AuthCredential
                         when (val signInResult =
-                            authRemoteDataSource.credentialSingIn(dataSourceEvent.result)) {
+                            authRemoteDataSource.credentialSingIn(dataSourceEvent.result)
+                        ) {
                             is Result.Success -> emit(Result.Success(dataSourceEvent))
                             is Result.Error -> emit(Result.Error(signInResult.exception))
                         }
@@ -81,6 +72,17 @@ class AuthRepositoryImpl @Inject constructor(
             }
     }
 
+    override suspend fun verifyPhoneSingIn(
+        verificationId: String,
+        otpCode: String
+    ): Result<Boolean> {
+        val credentialResult = credentialRemoteDataSource.getVerifyPhoneCredential(verificationId, otpCode)
+        return when (val signInResult = authRemoteDataSource.credentialSingIn(credentialResult)) {
+            is Result.Success -> Result.Success(signInResult.data)
+            is Result.Error -> Result.Error(signInResult.exception)
+        }
+    }
+
     override suspend fun facebookSingIn(token: String): Result<Boolean> {
         val credentialResult = credentialRemoteDataSource.getFacebookCredential(token)
         return when (val signInResult = authRemoteDataSource.credentialSingIn(credentialResult)) {
@@ -89,8 +91,6 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-
     override fun isEmailVerified() = authRemoteDataSource.isEmailVerified()
     override fun signOut() = authRemoteDataSource.signOut()
 }
-

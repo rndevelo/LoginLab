@@ -14,21 +14,18 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.rndev.loginlab.domain.AuthRepository
 import io.rndev.loginlab.data.AuthRepositoryImpl
-import io.rndev.loginlab.domain.CredentialRepository
-import io.rndev.loginlab.data.CredentialRepositoryImpl
 import io.rndev.loginlab.data.datasources.AuthRemoteDataSource
 import io.rndev.loginlab.data.datasources.CredentialRemoteDataSource
 import io.rndev.loginlab.data.datasources.FirebaseAuthDataSource
 import io.rndev.loginlab.data.datasources.FirebaseCredentialDataSource
+import io.rndev.loginlab.domain.AuthRepository
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AuthRepositoryBindsModule {
 
-//    Auth
     @Binds
     abstract fun bindAuthRepository(impl: AuthRepositoryImpl): AuthRepository
 
@@ -36,11 +33,9 @@ abstract class AuthRepositoryBindsModule {
     abstract fun bindAuthRemoteDataSource(impl: FirebaseAuthDataSource): AuthRemoteDataSource
 
     @Binds
-    abstract fun bindCredentialRepository(impl: CredentialRepositoryImpl): CredentialRepository
-
-    @Binds
     abstract fun bindCredentialRemoteDataSource(impl: FirebaseCredentialDataSource): CredentialRemoteDataSource
 }
+
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -56,7 +51,7 @@ internal class FirebaseAuthModule {
         GetSignInWithGoogleOption.Builder(BuildConfig.WEB_GOOGLE_ID_CLIENT)
             .build()
 
-    // Create the Credential Manager request
+
     @Singleton
     @Provides
     fun request(signInWithGoogleOption: GetSignInWithGoogleOption) = GetCredentialRequest.Builder()
