@@ -2,4 +2,16 @@
 <resources>
 
     <style name="Theme.LoginLab" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Tema para la Splash Screen (pre-Android 12) -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/white</item>
+        <!-- Puedes usar un drawable como icono si no es animado -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <!-- Tema a aplicar DESPUÉS de que la splash screen desaparezca -->
+        <item name="postSplashScreenTheme">@style/Theme.LoginLab</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>
+

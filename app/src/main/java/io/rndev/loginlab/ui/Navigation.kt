@@ -15,16 +15,14 @@ import io.rndev.loginlab.ui.login.Login
 import io.rndev.loginlab.ui.login.LoginScreen
 import io.rndev.loginlab.ui.register.Register
 import io.rndev.loginlab.ui.register.RegisterScreen
-import io.rndev.loginlab.ui.splash.Splash
-import io.rndev.loginlab.ui.splash.SplashScreen
 import io.rndev.loginlab.ui.verify.Verify
 import io.rndev.loginlab.ui.verify.VerifyScreen
 import io.rndev.loginlab.ui.verify.VerifyViewModel
 
 @Composable
-fun Navigation() {
+fun Navigation(isReady: Boolean) {
 
-    val backStack = rememberNavBackStack(Splash)
+    val backStack = rememberNavBackStack(if (isReady) Home else Login)
 
     NavDisplay(
         backStack = backStack,
@@ -34,21 +32,11 @@ fun Navigation() {
             rememberViewModelStoreNavEntryDecorator(),
         ),
         entryProvider = entryProvider {
-            entry<Splash> {
-                SplashScreen(
+            entry<Login> {
+                LoginScreen(
                     onNavigate = { navKey ->
                         backStack.clear()
                         backStack.add(navKey)
-                    }
-                )
-            }
-            entry<Login> {
-                LoginScreen(
-                    onRegister = { backStack.add(Register) },
-                    onVerify = { backStack.add(Verify(verificationId = it)) },
-                    onHome = {
-                        backStack.clear()
-                        backStack.add(Home)
                     }
                 )
             }
@@ -73,7 +61,7 @@ fun Navigation() {
             entry<Home> {
                 HomeScreen {
                     backStack.clear()
-                    backStack.add(Splash)
+                    backStack.add(Login)
                 }
             }
         }

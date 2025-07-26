@@ -40,16 +40,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.R
-import io.rndev.loginlab.utils.UiEvent
 import io.rndev.loginlab.ui.composables.EmailOptionContent
 import io.rndev.loginlab.ui.composables.PasswordTextField
 import io.rndev.loginlab.ui.composables.PhoneOptionContent
+import io.rndev.loginlab.ui.home.Home
+import io.rndev.loginlab.ui.login.composables.CreateAccountContent
 import io.rndev.loginlab.ui.login.composables.DropDownMenu
 import io.rndev.loginlab.ui.login.composables.ForgotYourPasswordContent
 import io.rndev.loginlab.ui.login.composables.LoginHeaderContent
 import io.rndev.loginlab.ui.login.composables.LoginOptionsContent
-import io.rndev.loginlab.ui.login.composables.CreateAccountContent
+import io.rndev.loginlab.ui.register.Register
+import io.rndev.loginlab.ui.verify.Verify
 import io.rndev.loginlab.utils.LoginFormType
+import io.rndev.loginlab.utils.UiEvent
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -57,21 +60,19 @@ data object Login : NavKey
 
 @Composable
 fun LoginScreen(
+    onNavigate: (NavKey) -> Unit,
     vm: LoginViewModel = hiltViewModel(),
-    onRegister: () -> Unit,
-    onVerify: (String) -> Unit,
-    onHome: () -> Unit,
 ) {
 
-    val state = vm.uiState.collectAsState()
-    val errorMessage = state.value.errorMessage
+    val state by vm.uiState.collectAsState()
+    val errorMessage = state.errorMessage
     val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         vm.events.collect { event ->
             when (event) {
-                is UiEvent.NavigateToHome -> onHome()
-                is UiEvent.NavigateToVerification -> onVerify(event.verificationId)
+                is UiEvent.NavigateToHome -> onNavigate(Home)
+                is UiEvent.NavigateToVerification -> onNavigate(Verify(verificationId = event.verificationId))
                 is UiEvent.ShowError -> snackBarHostState.showSnackbar(event.message)
                 is UiEvent.NavigateToLogin -> TODO()
             }
@@ -95,15 +96,15 @@ fun LoginScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {
             LoginContent(
-                isLoading = state.value.isLoading == true,
-                email = state.value.email,
-                password = state.value.password,
-                emailError = state.value.emailError,
-                passwordError = state.value.passwordError,
-                localError = state.value.localError,
+                isLoading = state.isLoading == true,
+                email = state.email,
+                password = state.password,
+                emailError = state.emailError,
+                passwordError = state.passwordError,
+                localError = state.localError,
                 errorMessage = errorMessage,
-                loginFormType = state.value.loginFormType,
-                onRegister = onRegister,
+                loginFormType = state.loginFormType,
+                onRegister = { onNavigate(Register) },
                 onAction = vm::onAction,
                 onFbActivityResult = {
                     facebookLoginLauncher.launch(listOf("email", "public_profile"))

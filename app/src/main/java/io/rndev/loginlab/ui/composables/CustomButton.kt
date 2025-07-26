@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 fun CustomButton(
     onClick: () -> Unit,
     buttonContent: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
     isEnabled: Boolean = true,
     colors: ButtonColors = ButtonDefaults.buttonColors(),
 ) {
@@ -22,7 +23,7 @@ fun CustomButton(
         enabled = isEnabled,
         colors = colors,
         shape = OutlinedTextFieldDefaults.shape,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(45.dp)
     ) {

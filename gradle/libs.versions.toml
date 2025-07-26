@@ -1,4 +1,5 @@
 [versions]
+accompanistPlaceholderMaterial3 = "0.34.0"
 agp = "8.10.1"
 ccp = "2.7.1"
 coilCompose = "2.7.0"
@@ -34,6 +35,7 @@ hilt = "2.55"
 hiltNavigationCompose = "1.2.0"
 
 [libraries]
+accompanist-placeholder-material3 = { module = "com.google.accompanist:accompanist-placeholder-material3", version.ref = "accompanistPlaceholderMaterial3" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }

@@ -19,14 +19,13 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,6 +46,7 @@ import androidx.navigation3.runtime.NavKey
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import io.rndev.loginlab.R
+import io.rndev.loginlab.ui.composables.CustomButton
 import io.rndev.loginlab.ui.composables.ErrorContent
 import io.rndev.loginlab.ui.composables.LoadingAnimation
 import kotlinx.serialization.Serializable
@@ -59,7 +59,7 @@ data object Home : NavKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onSplash: () -> Unit) {
+fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onLogin: () -> Unit) {
 
     val state = vm.uiState.collectAsState()
     val user = state.value.user
@@ -68,7 +68,7 @@ fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onSplash: () -> Unit) {
 
     LaunchedEffect(loggedIn) {
         if (loggedIn == false) {
-            onSplash()
+            onLogin()
         }
     }
 
@@ -82,7 +82,7 @@ fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onSplash: () -> Unit) {
             errorMessage != null -> {
                 ErrorContent(
                     message = errorMessage,
-                    onRetry = onSplash,
+                    onRetry = onLogin,
                     modifier = Modifier.padding(innerPadding)
                 )
             }
@@ -106,27 +106,30 @@ fun HomeScreen(vm: HomeViewModel = hiltViewModel(), onSplash: () -> Unit) {
                         modifier = Modifier.padding(innerPadding)
                     )
 
-                    Button(
+                    CustomButton(
                         onClick = vm::onSignOut,
-                        shape = OutlinedTextFieldDefaults.shape,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(45.dp)
-                            .align(Alignment.BottomCenter)
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = stringResource(R.string.home_text_sign_out),
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text(stringResource(R.string.home_text_sign_out))
-                    }
+                        buttonContent = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                                contentDescription = stringResource(R.string.home_text_sign_out),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(stringResource(R.string.home_text_sign_out))
+                        },
+                        modifier = Modifier.align(Alignment.BottomCenter)
+                    )
                 }
 
             }
 
-            else -> LoadingAnimation()
+            else -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LoadingAnimation(color = ProgressIndicatorDefaults.circularColor)
+                }
+            }
         }
     }
 }
