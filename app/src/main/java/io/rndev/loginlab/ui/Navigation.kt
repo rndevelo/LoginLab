@@ -9,15 +9,17 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
-import io.rndev.loginlab.ui.home.Home
-import io.rndev.loginlab.ui.home.HomeScreen
-import io.rndev.loginlab.ui.login.Login
-import io.rndev.loginlab.ui.login.LoginScreen
-import io.rndev.loginlab.ui.register.Register
-import io.rndev.loginlab.ui.register.RegisterScreen
-import io.rndev.loginlab.ui.verify.Verify
-import io.rndev.loginlab.ui.verify.VerifyScreen
-import io.rndev.loginlab.ui.verify.VerifyViewModel
+import io.rndev.loginlab.feature.auth.login.Login
+import io.rndev.loginlab.feature.auth.login.LoginScreen
+import io.rndev.loginlab.feature.auth.register.Register
+import io.rndev.loginlab.feature.auth.register.RegisterScreen
+import io.rndev.loginlab.feature.auth.verify.Verify
+import io.rndev.loginlab.feature.auth.verify.VerifyScreen
+import io.rndev.loginlab.feature.auth.verify.VerifyViewModel
+import io.rndev.loginlab.feature.core.Home
+import io.rndev.loginlab.feature.core.Login
+import io.rndev.loginlab.home.Home
+import io.rndev.loginlab.home.HomeScreen
 
 @Composable
 fun Navigation(isReady: Boolean) {

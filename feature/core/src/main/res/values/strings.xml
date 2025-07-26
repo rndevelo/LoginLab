@@ -1,0 +1,52 @@
+<resources>
+    <string name="app_name">Login Lab</string>
+
+    <string name="login_text_email">Email</string>
+    <string name="login_text_password">Password</string>
+    <string name="login_text_sign_in">Sign in</string>
+    <string name="login_text_sign_up">Sign up</string>
+    <string name="login_text_signing_in">Signing in…</string>
+    <string name="login_text_sign_in_with_email">Sign in with Email</string>
+    <string name="login_text_sign_up_with_email">Sign up with Email</string>
+    <string name="login_text_sign_in_with_google">Sign in with Google</string>
+    <string name="login_text_sign_in_with_facebook">Sign in with Facebook</string>
+    <string name="login_text_sign_in_with_phone">Sign in with Phone</string>
+    <string name="login_text_enter_sms_code">Enter sms code</string>
+    <string name="login_text_phone">Phone</string>
+    <string name="login_text_code">Code</string>
+    <string name="login_text_send_code">Send code</string>
+    <string name="login_text_verify_code">Verify code</string>
+    <string name="login_text_no_account_prompt">Don\'t have an account yet?</string>
+    <string name="login_text_create_account">Create account</string>
+    <string name="login_text_hide_password">Hide password</string>
+    <string name="login_text_show_password">Show password</string>
+    <string name="login_text_forgot_your_password">Forgot your password?</string>
+    <string name="login_text_or">or</string>
+
+    <string name="login_text_email_sent">Email Sent</string>
+    <string name="login_text_check_your_email_to_verify_your_account">Check your email to verify your account</string>
+
+
+    <string name="home_text_user_info_missing">%1$s not available</string>
+    <string name="home_text_user_info_email">Email</string>
+    <string name="home_text_user_info_uid">UID</string>
+    <string name="app_text_user_info_name">Name</string>
+    <string name="home_text_user_info_photo">Photo</string>
+    <string name="home_text_user_info_phone">Phone number</string>
+    <string name="home_text_user_info_creation">Date of creation</string>
+    <string name="home_text_user_info_last_login">Last access</string>
+    <string name="home_text_sign_out">Sign out</string>
+    <string name="home_text_member_since">Member since</string>
+    <string name="home_text_Last_sign_in">Last sign in</string>">
+    <string name="home_text_user_data_error">User data error</string>
+    <string name="home_text_retry">Retry</string>
+    <string name="app_text_unknown_error">Unknown error</string>
+
+
+    <string name="facebook_app_id">1023772253242386</string>
+    <string name="fb_login_protocol_scheme">fb1023772253242386</string>
+    <string name="facebook_client_token">49dc77984201614fd9ff0c8a9e748fb3</string>
+    <string name="login_text_securely_simply_swiftly">Securely. Simply. Swiftly.</string>
+    <string name="app_text_100_android_best_practices_by_rndev">100% Android Best Practices by Rndev</string>
+
+</resources>

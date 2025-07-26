@@ -37,7 +37,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
 //        setupCustomExitAnimation(splashScreen)
-
         super.onCreate(savedInstanceState)
         splashScreen.setKeepOnScreenCondition {
             mainViewModel.isAuthenticated.value == null // Mantener splash mientras isReady es nulo
@@ -118,47 +117,3 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-
-private fun setupSplashScreenExitAnimation(splashScreen: SplashScreen) {
-    // Solo para Android 12 (API 31) y superior
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-        splashScreen.setOnExitAnimationListener { splashScreenViewProvider ->
-            val iconView = splashScreenViewProvider.iconView
-
-            // Animación de salida para el icono (ej. deslizar hacia arriba y desaparecer)
-            val iconAnimator = ObjectAnimator.ofFloat(
-                iconView,
-                View.TRANSLATION_Y,
-                0f,
-                -iconView.height.toFloat() * 1.5f // Moverlo hacia arriba fuera de la vista
-            ).apply {
-                interpolator = AnticipateInterpolator() // Efecto de "anticipación"
-                duration = 300L // Duración más corta para la salida del icono
-                doOnEnd {
-                    // Importante: Remover la vista de la splash screen una vez que la animación termina
-                    splashScreenViewProvider.remove()
-                }
-            }
-
-            // Animación de salida para la vista de la splash screen (ej. fade out)
-            // Esto es opcional, a veces solo animar el icono es suficiente.
-            // val splashViewAnimator = ObjectAnimator.ofFloat(
-            //     splashScreenView,
-            //     View.ALPHA,
-            //     1f,
-            //     0f
-            // ).apply {
-            //     duration = 200L
-            //     doOnEnd {
-            //         // No es necesario remover aquí si el iconAnimator ya lo hace.
-            //         // Solo asegúrate de que remove() se llame una vez.
-            //     }
-            // }
-
-            // Iniciar las animaciones
-            iconAnimator.start()
-            // splashViewAnimator.start() // Descomentar si usas la animación de la vista
-        }
-    }
-}

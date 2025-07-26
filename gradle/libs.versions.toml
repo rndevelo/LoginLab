@@ -9,9 +9,9 @@ coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.9.1"
+lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
-composeBom = "2025.06.01"
+composeBom = "2025.07.00"
 lottieCompose = "6.3.0"
 materialIconsExtended = "1.7.8"
 
@@ -25,14 +25,17 @@ nav3Material = "1.0.0-SNAPSHOT"
 kotlinxSerialization = "1.8.1"
 
 googleGmsGoogleServices = "4.4.3"
-firebaseAuth = "23.2.1"
+firebaseAuth = "24.0.0"
 credentials = "1.5.0"
 credentialsPlayServicesAuth = "1.5.0"
 googleid = "1.1.1"
 
+coroutines = "1.8.1"
+
 ksp = "2.1.20-1.0.31"
 hilt = "2.55"
 hiltNavigationCompose = "1.2.0"
+jetbrainsKotlinJvm = "2.1.21"
 
 [libraries]
 accompanist-placeholder-material3 = { module = "com.google.accompanist:accompanist-placeholder-material3", version.ref = "accompanistPlaceholderMaterial3" }
@@ -68,6 +71,7 @@ androidx-credentials-play-services-auth = { group = "androidx.credentials", name
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 facebook-login = { module = "com.facebook.android:facebook-login", version.ref = "facebookLogin" }
 
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 hilt-core = { group = "com.google.dagger", name = "hilt-core", version.ref = "hilt" }
@@ -75,6 +79,9 @@ hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
+
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -85,4 +92,5 @@ google-gms-google-services = { id = "com.google.gms.google-services", version.re
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 

@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -27,4 +28,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "Login Lab"
 include(":app")
- 
+include(":domain")
+include(":data")
+include(":framework")
+include(":feature")
+include(":feature:auth")
+include(":feature:user")
+include(":feature:core")

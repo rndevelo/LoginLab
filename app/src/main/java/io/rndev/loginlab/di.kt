@@ -14,12 +14,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.rndev.loginlab.data.AuthRepositoryImpl
+import io.rndev.loginlab.AuthRepositoryImpl
 import io.rndev.loginlab.data.datasources.AuthRemoteDataSource
 import io.rndev.loginlab.data.datasources.CredentialRemoteDataSource
-import io.rndev.loginlab.data.datasources.FirebaseAuthDataSource
 import io.rndev.loginlab.data.datasources.FirebaseCredentialDataSource
-import io.rndev.loginlab.domain.AuthRepository
 import javax.inject.Singleton
 
 @Module
