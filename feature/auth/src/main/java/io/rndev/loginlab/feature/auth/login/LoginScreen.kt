@@ -29,7 +29,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +41,7 @@ import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.feature.auth.UiEvent
 import io.rndev.loginlab.feature.auth.login.composables.CreateAccountContent
 import io.rndev.loginlab.feature.auth.login.composables.DropDownMenu
+import io.rndev.loginlab.feature.auth.login.composables.ForgotPasswordDialog
 import io.rndev.loginlab.feature.auth.login.composables.ForgotYourPasswordContent
 import io.rndev.loginlab.feature.auth.login.composables.LoginHeaderContent
 import io.rndev.loginlab.feature.auth.login.composables.LoginOptionsContent
@@ -68,7 +68,7 @@ fun LoginScreen(
         vm.events.collect { event ->
             when (event) {
                 is UiEvent.NavigateToHome -> onNavigate(Home)
-                is UiEvent.NavigateToVerification -> onNavigate(Verify(verificationId = event.verificationId))
+                is UiEvent.NavigateToVerification -> onNavigate(Verify(event.verificationId))
                 is UiEvent.ShowError -> snackBarHostState.showSnackbar(event.message)
                 is UiEvent.NavigateToLogin -> TODO()
             }
@@ -127,6 +127,7 @@ private fun LoginContent(
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
 
     BackHandler(enabled = loginFormType != null) {
         onAction(LoginAction.OnLoginFormTypeChanged(null))
@@ -180,7 +181,7 @@ private fun LoginContent(
                     )
                 },
                 forgotYourPasswordText = {
-                    ForgotYourPasswordContent {}
+                    ForgotYourPasswordContent { showDialog = true }
                 },
                 buttonContent = {
                     CreateAccountContent(
@@ -189,11 +190,16 @@ private fun LoginContent(
                     )
                 },
             )
+            ForgotPasswordDialog(
+                showDialog = showDialog,
+                onDismissRequest = { showDialog = false },
+                onSendResetLink = { onAction(LoginAction.OnRecoverPassword) }
+            )
         }
 
 
-        var codeSelected by rememberSaveable { mutableStateOf("+34") }
-        var phone by rememberSaveable { mutableStateOf("") }
+        var codeSelected by remember { mutableStateOf("+34") }
+        var phone by remember { mutableStateOf("") }
         val fullPhone = codeSelected + phone.trim()
         val isValidPhone = fullPhone.matches(Regex("^\\+\\d{8,15}$"))
 

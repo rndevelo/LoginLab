@@ -37,19 +37,20 @@ class RegisterViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch {
-            authRepository.emailSignUp(uiState.value.email, uiState.value.password).let { result ->
-                when (result) {
-                    is Result.Success -> onEmailVerified()
-                    is Result.Error -> {
-                        _uiState.update { it.copy(isLoading = false) }
-                        _eventChannel.send(
-                            UiEvent.ShowError(
-                                result.exception.localizedMessage ?: "Error desconocido"
+            authRepository.emailSignUp(uiState.value.email, uiState.value.password)
+                .collectLatest { result ->
+                    when (result) {
+                        is Result.Success -> onEmailVerified()
+                        is Result.Error -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _eventChannel.send(
+                                UiEvent.ShowError(
+                                    result.exception.localizedMessage ?: "Error desconocido"
+                                )
                             )
-                        )
+                        }
                     }
                 }
-            }
         }
     }
 

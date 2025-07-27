@@ -41,5 +41,9 @@ gradlePlugin {
             id = "rndev.di.library.compose"
             implementationClass = "DiLibraryComposeConventionPlugin"
         }
+        register("firebaseLibrary") {
+            id = "rndev.firebase.library"
+            implementationClass = "FirebaseLibraryConventionPlugin"
+        }
     }
 }

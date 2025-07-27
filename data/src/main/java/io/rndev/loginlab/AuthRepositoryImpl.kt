@@ -1,17 +1,17 @@
 package io.rndev.loginlab
 
+import android.app.Activity
+import android.content.Context
 import io.rndev.loginlab.datasource.AuthRemoteDataSource
 import io.rndev.loginlab.datasource.CredentialRemoteDataSource
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.transformLatest
-import kotlin.Result
+import kotlinx.coroutines.flow.flowOf
 
 //Implementación del repositorio de autenticación
 class AuthRepositoryImpl @Inject constructor(
     val authRemoteDataSource: AuthRemoteDataSource,
-    val credentialRemoteDataSource: CredentialRemoteDataSource
+    val tokenRemoteDataSource: CredentialRemoteDataSource
 ) : AuthRepository {
 
     override fun currentUser(): Flow<Result<User>> = authRemoteDataSource.currentUser()
@@ -22,69 +22,25 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun emailSignUp(email: String, password: String) =
         authRemoteDataSource.emailSignUp(email, password)
 
-    override suspend fun googleSingIn(context: Context): Result<Boolean> {
-        return when (val credentialResult =
-            credentialRemoteDataSource.getGoogleCredential(context)) {
-            is Result.Success -> {
-                when (val signInResult =
-                    authRemoteDataSource.credentialSingIn(credentialResult.data)) {
-                    is Result.Success -> Result.Success(signInResult.data)
-                    is Result.Error -> Result.Error(signInResult.exception)
-                }
-            }
-
-            is Result.Error -> Result.Error(credentialResult.exception)
+    override suspend fun googleSingIn(context: Context): Flow<Result<Boolean>> {
+        return when (val idTokenResult = tokenRemoteDataSource.getGoogleIdToken(context)) {
+            is Result.Success -> authRemoteDataSource.googleSingIn(idTokenResult.data)
+            is Result.Error -> flowOf(Result.Error(idTokenResult.exception))
         }
     }
 
-    override suspend fun phoneSingIn(
-        phoneNumber: String,
-        activity: Activity
-    ): Flow<Result<PhoneAuthProcessEvent>> {
-        return credentialRemoteDataSource.getPhoneAuthProcessEvent(
-            phoneNumber,
-            activity
-        ) // Este es Flow<PhoneAuthProcessEvent_DataSource>
-            .transformLatest { dataSourceEvent -> // o flatMapConcat, etc.
-                when (dataSourceEvent) {
-                    is PhoneAuthProcessEvent.VerificationCompleted -> {
-                        // dataSourceEvent.result es AuthCredential
-                        when (val signInResult =
-                            authRemoteDataSource.credentialSingIn(dataSourceEvent.result)
-                        ) {
-                            is Result.Success -> emit(Result.Success(dataSourceEvent))
-                            is Result.Error -> emit(Result.Error(signInResult.exception))
-                        }
-                    }
+    override suspend fun facebookSingIn(token: String) = authRemoteDataSource.facebookSingIn(token)
 
-                    is PhoneAuthProcessEvent.VerificationFailed -> emit(Result.Error(dataSourceEvent.error))
-                    is PhoneAuthProcessEvent.CodeSent -> emit(Result.Success(dataSourceEvent))
+    override suspend fun phoneWithOtpSignIn(verificationId: String, otpCode: String) =
+        authRemoteDataSource.phoneWithOtpSignIn(verificationId, otpCode)
 
-                }
-            }
-            .catch { e -> // Capturar excepciones del flujo en sí mismo
-                emit(Result.Error(e))
-            }
+    override suspend fun phoneSingIn(phoneNumber: String, activity: Activity) =
+        authRemoteDataSource.phoneSingIn(phoneNumber, activity)
+
+    override suspend fun recoverPassword(email: String): Flow<Result<Boolean>> {
+        TODO("Not yet implemented")
     }
 
-    override suspend fun verifyPhoneSingIn(
-        verificationId: String,
-        otpCode: String
-    ): Result<Boolean> {
-        val credentialResult = credentialRemoteDataSource.getVerifyPhoneCredential(verificationId, otpCode)
-        return when (val signInResult = authRemoteDataSource.credentialSingIn(credentialResult)) {
-            is Result.Success -> Result.Success(signInResult.data)
-            is Result.Error -> Result.Error(signInResult.exception)
-        }
-    }
-
-    override suspend fun facebookSingIn(token: String): Result<Boolean> {
-        val credentialResult = credentialRemoteDataSource.getFacebookCredential(token)
-        return when (val signInResult = authRemoteDataSource.credentialSingIn(credentialResult)) {
-            is Result.Success -> Result.Success(signInResult.data)
-            is Result.Error -> Result.Error(signInResult.exception)
-        }
-    }
 
     override fun isEmailVerified() = authRemoteDataSource.isEmailVerified()
     override fun signOut() = authRemoteDataSource.signOut()

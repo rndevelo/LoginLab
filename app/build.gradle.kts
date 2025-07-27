@@ -1,7 +1,6 @@
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
     id("rndev.android.application")
@@ -47,6 +46,7 @@ dependencies {
     implementation(project(":feature:core"))
     implementation(project(":feature:auth"))
     implementation(project(":feature:user"))
+    implementation(project(":framework"))
 
     implementation(libs.androidx.activity.compose)
 
@@ -59,24 +59,8 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.material3.navigation3)
 
-//    Ccp
-    implementation(libs.ccp)
-
-//    Coil
-    implementation(libs.coil.compose)
-
 //    Serialization
     implementation(libs.kotlinx.serialization.json)
-
-//    Firebase
-    implementation(libs.firebase.auth)
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
-    implementation (libs.facebook.login)
-
-    // Hilt para ViewModel
-    implementation(libs.androidx.hilt.navigation.compose)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
