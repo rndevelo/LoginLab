@@ -37,10 +37,8 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun phoneSingIn(phoneNumber: String, activity: Activity) =
         authRemoteDataSource.phoneSingIn(phoneNumber, activity)
 
-    override suspend fun recoverPassword(email: String): Flow<Result<Boolean>> {
-        TODO("Not yet implemented")
-    }
-
+    override suspend fun resetPassword(email: String) =
+        authRemoteDataSource.resetPassword(email)
 
     override fun isEmailVerified() = authRemoteDataSource.isEmailVerified()
     override fun signOut() = authRemoteDataSource.signOut()

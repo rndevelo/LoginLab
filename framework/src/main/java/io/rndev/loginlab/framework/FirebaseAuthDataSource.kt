@@ -109,7 +109,7 @@ class FirebaseAuthDataSource @Inject constructor(val auth: FirebaseAuth) : AuthR
         awaitClose()
     }
 
-    override fun recoverPassword(email: String) = channelFlow {
+    override fun resetPassword(email: String) = channelFlow {
         auth.sendPasswordResetEmail(email).addOnSuccessListener {
             launch {
                 send(Result.Success(true))

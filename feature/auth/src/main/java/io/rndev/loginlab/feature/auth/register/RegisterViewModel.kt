@@ -30,7 +30,7 @@ class RegisterViewModel @Inject constructor(
     val events = _eventChannel.receiveAsFlow()
 
     fun onValidate() {
-        onValidateInputs(_uiState) { onSignUp() }
+        onValidateInputs(_uiState)
     }
 
     private fun onSignUp() {
@@ -68,6 +68,7 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun onEmailValueChange(value: String) {
+        onValidateInputs(_uiState)
         _uiState.update {
             it.copy(
                 email = value,
@@ -77,6 +78,7 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun onPasswordValueChange(value: String) {
+        onValidateInputs(_uiState)
         _uiState.update {
             it.copy(
                 password = value,
@@ -86,6 +88,7 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun onConfirmPasswordValueChange(value: String) {
+        onValidateInputs(_uiState)
         _uiState.update {
             it.copy(
                 confirmPassword = value,

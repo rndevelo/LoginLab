@@ -16,7 +16,7 @@ interface AuthRemoteDataSource {
     fun facebookSingIn(idToken: String): Flow<Result<Boolean>>
     fun phoneWithOtpSignIn(verificationId: String, otpCode: String): Flow<Result<Boolean>>
     fun phoneSingIn(phoneNumber: String, activity: Activity): Flow<PhoneAuthEvent>
-    fun recoverPassword(email: String): Flow<Result<Boolean>>
+    fun resetPassword(email: String): Flow<Result<Boolean>>
     fun isEmailVerified(): Flow<Boolean>
     fun signOut()
 }

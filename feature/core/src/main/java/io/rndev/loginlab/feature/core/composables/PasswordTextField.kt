@@ -62,7 +62,7 @@ fun PasswordTextField(
                     .clickable { isPasswordVisible = !isPasswordVisible }
             )
         },
-        supportingText = passwordSupportingText(passwordError,confirmPasswordError, localError),
+        supportingText = passwordSupportingText(passwordError,confirmPasswordError),
         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         singleLine = true,
         isError = localError && passwordError != null || localError && confirmPasswordError != null,
@@ -79,9 +79,8 @@ fun PasswordTextField(
 private fun passwordSupportingText(
     passwordError: String?,
     confirmPasswordError: String?,
-    localError: Boolean,
 ): @Composable (() -> Unit)? = when {
-    passwordError != null && localError -> { // Condición aquí
+    passwordError != null -> { // Condición aquí
         {
             AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
                 Text(passwordError)
@@ -89,7 +88,7 @@ private fun passwordSupportingText(
         }
     }
 
-    confirmPasswordError != null && localError -> {
+    confirmPasswordError != null -> {
         {
             AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
                 Text(confirmPasswordError)

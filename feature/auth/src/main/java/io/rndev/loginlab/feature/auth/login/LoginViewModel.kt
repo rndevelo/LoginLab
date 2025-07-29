@@ -34,7 +34,7 @@ sealed interface LoginAction {
     data object OnEmailSignIn : LoginAction
     data class OnPhoneSignIn(val phoneNumber: String, val activity: Activity) : LoginAction
     data class OnGoogleSignIn(val context: Context) : LoginAction
-    data object OnRecoverPassword : LoginAction
+    data object OnResetPassword : LoginAction
     data class OnEmailChanged(val email: String) : LoginAction
     data class OnPasswordChanged(val password: String) : LoginAction
     data class OnLoginFormTypeChanged(val formType: LoginFormType?) : LoginAction
@@ -62,12 +62,14 @@ class LoginViewModel @Inject constructor(
             is LoginAction.OnEmailSignIn -> handleEmailSignIn()
             is LoginAction.OnPhoneSignIn -> handlePhoneSignIn(action.phoneNumber, action.activity)
             is LoginAction.OnGoogleSignIn -> handleGoogleSignIn(action.context)
-            is LoginAction.OnRecoverPassword -> handleRecoverPassword()
+            is LoginAction.OnResetPassword -> handleResetPassword()
             is LoginAction.OnEmailChanged -> _uiState.update {
+                onValidateInputs(_uiState)
                 it.copy(email = action.email, localError = false)
             }
 
             is LoginAction.OnPasswordChanged -> _uiState.update {
+                onValidateInputs(_uiState)
                 it.copy(password = action.password, localError = false)
             }
 
@@ -79,16 +81,14 @@ class LoginViewModel @Inject constructor(
 
     private fun handleEmailSignIn() {
         _uiState.update { it.copy(isLoading = true) }
-        onValidateInputs(_uiState) {
-            viewModelScope.launch {
-                authRepository.emailSignIn(uiState.value.email, uiState.value.password)
-                    .collectLatest { result ->
-                        when (result) {
-                            is Result.Success -> _eventChannel.send(NavigateToHome)
-                            is Result.Error -> onShowError(result.exception.localizedMessage)
-                        }
+        viewModelScope.launch {
+            authRepository.emailSignIn(uiState.value.email, uiState.value.password)
+                .collectLatest { result ->
+                    when (result) {
+                        is Result.Success -> _eventChannel.send(NavigateToHome)
+                        is Result.Error -> onShowError(result.exception.localizedMessage)
                     }
-            }
+                }
         }
     }
 
@@ -158,10 +158,10 @@ class LoginViewModel @Inject constructor(
         )
     }
 
-    private fun handleRecoverPassword() {
+    private fun handleResetPassword() {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            authRepository.recoverPassword(uiState.value.email).collectLatest { result ->
+            authRepository.resetPassword(uiState.value.email).collectLatest { result ->
                 when (result) {
                     is Result.Success -> onShowError("Email de recuperación enviado")
                     is Result.Error -> onShowError(result.exception.localizedMessage)

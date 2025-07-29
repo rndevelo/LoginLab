@@ -49,8 +49,8 @@ fun EmailOptionContent(
             value = email,
             onValueChange = { onEmailValueChange(it) },
             label = { Text(stringResource(R.string.login_text_email)) },
-            leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
-            supportingText = emailSupportingText(emailError, localError),
+            leadingIcon = { Icon(Icons.Default.Email, null) },
+            supportingText = emailSupportingText(emailError),
             singleLine = true,
             isError = emailError != null && localError,
             keyboardOptions = KeyboardOptions(
@@ -74,7 +74,7 @@ fun EmailOptionContent(
                 if (isLoading) LoadingAnimation()
                 else Text(textButton)
             },
-            isEnabled = email.isNotBlank() && password.isNotBlank(),
+            isEnabled = emailError == null,
         )
 
         buttonContent()
@@ -82,15 +82,13 @@ fun EmailOptionContent(
 }
 
 @Composable
-private fun emailSupportingText(
-    emailError: String?,
-    localError: Boolean
-): @Composable (() -> Unit)? = if (emailError != null && localError) { // Condición aquí
-    {
-        AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
-            Text(emailError)
+fun emailSupportingText(emailError: String?): @Composable (() -> Unit)? =
+    if (emailError != null) { // Condición aquí
+        {
+            AnimatedVisibility(visible = true) { // 'visible = true' porque el if ya lo controla
+                Text(emailError)
+            }
         }
+    } else {
+        null // Pasar null cuando no hay error
     }
-} else {
-    null // Pasar null cuando no hay error
-}

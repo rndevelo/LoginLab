@@ -41,7 +41,7 @@ import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.feature.auth.UiEvent
 import io.rndev.loginlab.feature.auth.login.composables.CreateAccountContent
 import io.rndev.loginlab.feature.auth.login.composables.DropDownMenu
-import io.rndev.loginlab.feature.auth.login.composables.ForgotPasswordDialog
+import io.rndev.loginlab.feature.auth.login.composables.ResetPasswordDialog
 import io.rndev.loginlab.feature.auth.login.composables.ForgotYourPasswordContent
 import io.rndev.loginlab.feature.auth.login.composables.LoginHeaderContent
 import io.rndev.loginlab.feature.auth.login.composables.LoginOptionsContent
@@ -190,13 +190,16 @@ private fun LoginContent(
                     )
                 },
             )
-            ForgotPasswordDialog(
+            ResetPasswordDialog(
                 showDialog = showDialog,
+                email = email,
+                emailError = emailError,
+                localError = localError,
+                onEmailValueChange = { onAction(LoginAction.OnEmailChanged(it)) },
                 onDismissRequest = { showDialog = false },
-                onSendResetLink = { onAction(LoginAction.OnRecoverPassword) }
+                onSendResetLink = { onAction(LoginAction.OnResetPassword) }
             )
         }
-
 
         var codeSelected by remember { mutableStateOf("+34") }
         var phone by remember { mutableStateOf("") }

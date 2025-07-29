@@ -13,7 +13,7 @@ interface AuthRepository {
     suspend fun facebookSingIn(token: String): Flow<Result<Boolean>>
     suspend fun phoneWithOtpSignIn(verificationId: String, otpCode: String): Flow<Result<Boolean>>
     suspend fun phoneSingIn(phoneNumber: String, activity: Activity): Flow<PhoneAuthEvent>
-    suspend fun recoverPassword(email: String): Flow<Result<Boolean>>
+    suspend fun resetPassword(email: String): Flow<Result<Boolean>>
     fun isEmailVerified(): Flow<Boolean>
     fun signOut()
 }

@@ -33,7 +33,7 @@ sealed class InputError() {
     }
 }
 
-fun onValidateInputs(state: MutableStateFlow<UiState>, onSign: () -> Unit) {
+fun onValidateInputs(state: MutableStateFlow<UiState>) {
 
     val errors = listOf(
         InputError.InvalidEmail to InputError.InvalidEmail.validate(state.value),
@@ -51,9 +51,5 @@ fun onValidateInputs(state: MutableStateFlow<UiState>, onSign: () -> Unit) {
             localError = true,
             isLoading = isValid
         )
-    }
-
-    if (isValid) {
-        onSign()
     }
 }

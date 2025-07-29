@@ -22,6 +22,11 @@
     <string name="login_text_show_password">Show password</string>
     <string name="login_text_forgot_your_password">Forgot your password?</string>
     <string name="login_text_or">or</string>
+    <string name="login_text_reset_password">Reset Password</string>
+    <string name="login_text_we_ll_send_you_a_link_to_reset_your_password">Enter your email address and we\'ll send you a link to reset your password.</string>
+    <string name="login_text_send_reset_link">Send Reset Link</string>
+    <string name="login_text_cancel">Cancel</string>
+
 
     <string name="login_text_email_sent">Email Sent</string>
     <string name="login_text_check_your_email_to_verify_your_account">Check your email to verify your account</string>
