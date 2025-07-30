@@ -27,8 +27,6 @@
     <string name="login_text_send_reset_link">Send Reset Link</string>
     <string name="login_text_cancel">Cancel</string>
     <string name="login_text_securely_simply_swiftly">Securely. Simply. Swiftly.</string>
-
-
     <string name="login_text_email_sent">Email Sent</string>
     <string name="login_text_check_your_email_to_verify_your_account">Check your email to verify your account</string>
 
@@ -46,8 +44,6 @@
     <string name="home_text_Last_sign_in">Last sign in</string>">
     <string name="home_text_user_data_error">User data error</string>
     <string name="home_text_retry">Retry</string>
-
-    <string name="app_text_100_android_best_practices_by_rndev">100% Android Best Practices by Rndev</string>
     <string name="app_text_unknown_error">Unknown error</string>
 
 </resources>
