@@ -30,4 +30,7 @@ data class UiState(
         errorMessage = null,
         loginFormType = null,
     )
+
+    val allFieldsValid: Boolean
+        get() = emailError == null && passwordError == null && confirmPasswordError == null
 }

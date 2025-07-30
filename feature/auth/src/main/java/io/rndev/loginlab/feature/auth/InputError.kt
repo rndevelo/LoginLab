@@ -12,15 +12,15 @@ sealed class InputError() {
     object InvalidEmail : InputError() {
         override fun validate(uiState: UiState): String? {
             return if (!Patterns.EMAIL_ADDRESS.matcher(uiState.email)
-                    .matches()
+                    .matches() && uiState.email.isNotBlank()
             ) "El email no es válido." else null
         }
     }
 
     object PasswordTooShort : InputError() {
         override fun validate(uiState: UiState): String? {
-            return if (uiState.password.length < 8
-            ) "La contraseña debe tener al menos 8 caracteres." else null
+            return if (uiState.password.length < 8 && uiState.password.isNotBlank())
+                "La contraseña debe tener al menos 8 caracteres." else null
         }
     }
 
@@ -33,23 +33,3 @@ sealed class InputError() {
     }
 }
 
-fun onValidateInputs(state: MutableStateFlow<UiState>) {
-
-    val errors = listOf(
-        InputError.InvalidEmail to InputError.InvalidEmail.validate(state.value),
-        InputError.PasswordTooShort to InputError.PasswordTooShort.validate(state.value),
-        InputError.PasswordsDoNotMatch to InputError.PasswordsDoNotMatch.validate(state.value)
-    )
-
-    val isValid = errors.all { it.second == null }
-
-    state.update {
-        it.copy(
-            emailError = errors.first { it.first is InputError.InvalidEmail }.second,
-            passwordError = errors.first { it.first is InputError.PasswordTooShort }.second,
-            confirmPasswordError = errors.first { it.first is InputError.PasswordsDoNotMatch }.second,
-            localError = true,
-            isLoading = isValid
-        )
-    }
-}

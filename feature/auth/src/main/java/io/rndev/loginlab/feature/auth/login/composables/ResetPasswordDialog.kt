@@ -32,7 +32,6 @@ fun ResetPasswordDialog(
     showDialog: Boolean,
     email: String,
     emailError: String?,
-    localError: Boolean,
     onEmailValueChange: (String) -> Unit,
     onDismissRequest: () -> Unit,
     onSendResetLink: (email: String) -> Unit,
@@ -62,7 +61,7 @@ fun ResetPasswordDialog(
                         leadingIcon = { Icon(Icons.Default.Email, null) },
                         supportingText = emailSupportingText(emailError),
                         singleLine = true,
-                        isError = emailError != null && localError,
+                        isError = emailError != null,
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
                             imeAction = ImeAction.Next

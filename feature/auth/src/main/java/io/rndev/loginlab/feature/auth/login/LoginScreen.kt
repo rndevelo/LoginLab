@@ -3,6 +3,7 @@ package io.rndev.loginlab.feature.auth.login
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
@@ -97,13 +98,18 @@ fun LoginScreen(
                 password = state.password,
                 emailError = state.emailError,
                 passwordError = state.passwordError,
-                localError = state.localError,
                 errorMessage = errorMessage,
                 loginFormType = state.loginFormType,
+                allFieldsValid = state.allFieldsValid,
                 onRegister = { onNavigate(Register) },
                 onAction = vm::onAction,
                 onFbActivityResult = {
-                    facebookLoginLauncher.launch(listOf("email", "public_profile"))
+                    facebookLoginLauncher.launch(
+                        listOf(
+                            "email",
+                            "public_profile"
+                        )
+                    )
                 },
                 modifier = Modifier.padding(innerPadding),
             )
@@ -118,9 +124,9 @@ private fun LoginContent(
     password: String,
     emailError: String?,
     passwordError: String?,
-    localError: Boolean,
     errorMessage: String?,
     loginFormType: LoginFormType?,
+    allFieldsValid: Boolean,
     onRegister: () -> Unit,
     onAction: (LoginAction) -> Unit,
     onFbActivityResult: () -> Unit,
@@ -164,8 +170,8 @@ private fun LoginContent(
                 title = stringResource(R.string.login_text_sign_in_with_email),
                 email = email,
                 emailError = emailError,
-                password = password,
-                localError = localError,
+                isEnabled = allFieldsValid,
+                errorMessage = errorMessage,
                 onEmailValueChange = { onAction(LoginAction.OnEmailChanged(it)) },
                 textButton = stringResource(R.string.login_text_sign_in),
                 onBack = { onAction(LoginAction.OnLoginFormTypeChanged(null)) },
@@ -174,7 +180,7 @@ private fun LoginContent(
                     PasswordTextField(
                         value = password,
                         passwordError = passwordError,
-                        localError = localError,
+                        errorMessage = errorMessage,
                         imeAction = ImeAction.Done,
                         keyboardActions = KeyboardActions { onAction(LoginAction.OnEmailSignIn) },
                         onValueChange = { onAction(LoginAction.OnPasswordChanged(it)) },
@@ -194,7 +200,6 @@ private fun LoginContent(
                 showDialog = showDialog,
                 email = email,
                 emailError = emailError,
-                localError = localError,
                 onEmailValueChange = { onAction(LoginAction.OnEmailChanged(it)) },
                 onDismissRequest = { showDialog = false },
                 onSendResetLink = { onAction(LoginAction.OnResetPassword) }

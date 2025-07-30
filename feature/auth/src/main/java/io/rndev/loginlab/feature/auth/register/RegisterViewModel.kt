@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.AuthRepository
 import io.rndev.loginlab.Result
+import io.rndev.loginlab.feature.auth.InputError
 import io.rndev.loginlab.feature.auth.UiEvent
-import io.rndev.loginlab.feature.auth.onValidateInputs
 import io.rndev.loginlab.feature.core.UiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,15 +29,11 @@ class RegisterViewModel @Inject constructor(
     private val _eventChannel = Channel<UiEvent>()
     val events = _eventChannel.receiveAsFlow()
 
-    fun onValidate() {
-        onValidateInputs(_uiState)
-    }
-
-    private fun onSignUp() {
+    fun onSignUp() {
         _uiState.update { it.copy(isLoading = true) }
 
         viewModelScope.launch {
-            authRepository.emailSignUp(uiState.value.email, uiState.value.password)
+            authRepository.emailSignUp(_uiState.value.email, _uiState.value.password)
                 .collectLatest { result ->
                     when (result) {
                         is Result.Success -> onEmailVerified()
@@ -68,32 +64,23 @@ class RegisterViewModel @Inject constructor(
     }
 
     fun onEmailValueChange(value: String) {
-        onValidateInputs(_uiState)
         _uiState.update {
-            it.copy(
-                email = value,
-                localError = false
-            )
+            val newState = it.copy(email = value)
+            newState.copy(emailError = InputError.InvalidEmail.validate(newState))
         }
     }
 
     fun onPasswordValueChange(value: String) {
-        onValidateInputs(_uiState)
         _uiState.update {
-            it.copy(
-                password = value,
-                localError = false
-            )
+            val newState = it.copy(password = value)
+            newState.copy(passwordError = InputError.PasswordTooShort.validate(newState))
         }
     }
 
     fun onConfirmPasswordValueChange(value: String) {
-        onValidateInputs(_uiState)
         _uiState.update {
-            it.copy(
-                confirmPassword = value,
-                localError = false
-            )
+            val newState = it.copy(confirmPassword = value)
+            newState.copy(confirmPasswordError = InputError.PasswordsDoNotMatch.validate(newState))
         }
     }
 }

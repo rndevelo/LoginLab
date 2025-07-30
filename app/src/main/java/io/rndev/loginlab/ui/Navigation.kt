@@ -35,7 +35,9 @@ fun Navigation(isReady: Boolean) {
             entry<Login> {
                 LoginScreen(
                     onNavigate = { navKey ->
-                        backStack.clear()
+                        if (navKey == Home) {
+                            backStack.clear()
+                        }
                         backStack.add(navKey)
                     }
                 )

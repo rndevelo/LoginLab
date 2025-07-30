@@ -62,7 +62,7 @@ fun RegisterScreen(
     onBack: () -> Unit
 ) {
 
-    val state = vm.uiState.collectAsState()
+    val state by vm.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
@@ -96,22 +96,22 @@ fun RegisterScreen(
         ) {
 
             EmailOptionContent(
-                isLoading = state.value.isLoading == true,
+                isLoading = state.isLoading == true,
                 title = stringResource(R.string.login_text_sign_up_with_email),
-                email = state.value.email,
-                emailError = state.value.emailError,
-                password = state.value.password,
-                localError = state.value.localError,
+                email = state.email,
+                isEnabled = state.allFieldsValid,
+                emailError = state.emailError,
+                errorMessage = state.errorMessage,
                 onEmailValueChange = vm::onEmailValueChange,
                 textButton = stringResource(R.string.login_text_sign_up),
                 onBack = onBack,
-                onClick = vm::onValidate,
+                onClick = vm::onSignUp,
                 firstPasswordTextField = {
 
                     PasswordTextField(
-                        value = state.value.password,
-                        passwordError = state.value.passwordError,
-                        localError = state.value.localError,
+                        value = state.password,
+                        passwordError = state.passwordError,
+                        errorMessage = state.errorMessage,
                         imeAction = ImeAction.Next,
                         onValueChange = { vm.onPasswordValueChange(it) },
                     )
@@ -120,20 +120,20 @@ fun RegisterScreen(
 
                     Spacer(Modifier.height(8.dp))
                     PasswordTextField(
-                        value = state.value.confirmPassword,
-                        confirmPasswordError = state.value.confirmPasswordError,
-                        localError = state.value.localError,
+                        value = state.confirmPassword,
+                        confirmPasswordError = state.confirmPasswordError,
+                        errorMessage = state.errorMessage,
                         imeAction = ImeAction.Done,
-                        keyboardActions = KeyboardActions { vm.onValidate() },
+                        keyboardActions = KeyboardActions { vm::onSignUp },
                         onValueChange = { vm.onConfirmPasswordValueChange(it) },
                     )
                 }
             )
         }
 
-        AnimatedVisibility(visible = state.value.isEmailSent == true) {
+        AnimatedVisibility(visible = state.isEmailSent == true) {
             EmailVerificationDialog(
-                isVerified = state.value.isEmailVerified == true,
+                isVerified = state.isEmailVerified == true,
                 onCompleted = vm::onNavigateToHomeEvent
             )
         }

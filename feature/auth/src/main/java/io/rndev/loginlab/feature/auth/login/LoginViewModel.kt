@@ -13,11 +13,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.AuthRepository
 import io.rndev.loginlab.PhoneAuthEvent
 import io.rndev.loginlab.Result
+import io.rndev.loginlab.feature.auth.InputError
 import io.rndev.loginlab.feature.auth.UiEvent
 import io.rndev.loginlab.feature.auth.UiEvent.NavigateToHome
 import io.rndev.loginlab.feature.auth.UiEvent.NavigateToVerification
 import io.rndev.loginlab.feature.auth.UiEvent.ShowError
-import io.rndev.loginlab.feature.auth.onValidateInputs
 import io.rndev.loginlab.feature.core.LoginFormType
 import io.rndev.loginlab.feature.core.UiState
 import kotlinx.coroutines.channels.Channel
@@ -64,13 +64,13 @@ class LoginViewModel @Inject constructor(
             is LoginAction.OnGoogleSignIn -> handleGoogleSignIn(action.context)
             is LoginAction.OnResetPassword -> handleResetPassword()
             is LoginAction.OnEmailChanged -> _uiState.update {
-                onValidateInputs(_uiState)
-                it.copy(email = action.email, localError = false)
+                val newState = it.copy(email = action.email)
+                newState.copy(emailError = InputError.InvalidEmail.validate(newState))
             }
 
             is LoginAction.OnPasswordChanged -> _uiState.update {
-                onValidateInputs(_uiState)
-                it.copy(password = action.password, localError = false)
+                val newState = it.copy(password = action.password)
+                newState.copy(passwordError = InputError.PasswordTooShort.validate(newState))
             }
 
             is LoginAction.OnLoginFormTypeChanged -> _uiState.update {
@@ -82,7 +82,7 @@ class LoginViewModel @Inject constructor(
     private fun handleEmailSignIn() {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            authRepository.emailSignIn(uiState.value.email, uiState.value.password)
+            authRepository.emailSignIn(_uiState.value.email, _uiState.value.password)
                 .collectLatest { result ->
                     when (result) {
                         is Result.Success -> _eventChannel.send(NavigateToHome)

@@ -25,9 +25,9 @@ fun EmailOptionContent(
     isLoading: Boolean,
     title: String,
     email: String,
+    isEnabled: Boolean,
     emailError: String?,
-    password: String,
-    localError: Boolean,
+    errorMessage: String?,
     onEmailValueChange: (String) -> Unit,
     textButton: String,
     onBack: () -> Unit,
@@ -52,7 +52,7 @@ fun EmailOptionContent(
             leadingIcon = { Icon(Icons.Default.Email, null) },
             supportingText = emailSupportingText(emailError),
             singleLine = true,
-            isError = emailError != null && localError,
+            isError = errorMessage != null,
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email, imeAction = ImeAction.Next
             ),
@@ -74,7 +74,7 @@ fun EmailOptionContent(
                 if (isLoading) LoadingAnimation()
                 else Text(textButton)
             },
-            isEnabled = emailError == null,
+            isEnabled = isEnabled,
         )
 
         buttonContent()

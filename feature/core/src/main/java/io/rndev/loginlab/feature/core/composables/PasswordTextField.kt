@@ -32,7 +32,7 @@ fun PasswordTextField(
     value: String,
     passwordError: String? = null,
     confirmPasswordError: String? = null,
-    localError: Boolean,
+    errorMessage: String? = null,
     imeAction: ImeAction,
     keyboardActions: KeyboardActions = KeyboardActions(),
     onValueChange: (String) -> Unit,
@@ -65,7 +65,7 @@ fun PasswordTextField(
         supportingText = passwordSupportingText(passwordError,confirmPasswordError),
         visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         singleLine = true,
-        isError = localError && passwordError != null || localError && confirmPasswordError != null,
+        isError = errorMessage != null,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password,
             imeAction = imeAction
