@@ -26,6 +26,7 @@
     <string name="login_text_we_ll_send_you_a_link_to_reset_your_password">Enter your email address and we\'ll send you a link to reset your password.</string>
     <string name="login_text_send_reset_link">Send Reset Link</string>
     <string name="login_text_cancel">Cancel</string>
+    <string name="login_text_securely_simply_swiftly">Securely. Simply. Swiftly.</string>
 
 
     <string name="login_text_email_sent">Email Sent</string>
@@ -45,13 +46,8 @@
     <string name="home_text_Last_sign_in">Last sign in</string>">
     <string name="home_text_user_data_error">User data error</string>
     <string name="home_text_retry">Retry</string>
-    <string name="app_text_unknown_error">Unknown error</string>
 
-
-    <string name="facebook_app_id">1023772253242386</string>
-    <string name="fb_login_protocol_scheme">fb1023772253242386</string>
-    <string name="facebook_client_token">49dc77984201614fd9ff0c8a9e748fb3</string>
-    <string name="login_text_securely_simply_swiftly">Securely. Simply. Swiftly.</string>
     <string name="app_text_100_android_best_practices_by_rndev">100% Android Best Practices by Rndev</string>
+    <string name="app_text_unknown_error">Unknown error</string>
 
 </resources>

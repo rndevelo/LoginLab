@@ -42,10 +42,6 @@
     <string name="home_text_retry">Retry</string>
     <string name="app_text_unknown_error">Unknown error</string>
 
-
-    <string name="facebook_app_id">1023772253242386</string>
-    <string name="fb_login_protocol_scheme">fb1023772253242386</string>
-    <string name="facebook_client_token">49dc77984201614fd9ff0c8a9e748fb3</string>
     <string name="login_text_securely_simply_swiftly">Securely. Simply. Swiftly.</string>
     <string name="app_text_100_android_best_practices_by_rndev">100% Android Best Practices by Rndev</string>
 

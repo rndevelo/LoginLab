@@ -3,7 +3,6 @@ package io.rndev.loginlab.feature.auth.login
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
@@ -42,10 +41,10 @@ import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.feature.auth.UiEvent
 import io.rndev.loginlab.feature.auth.login.composables.CreateAccountContent
 import io.rndev.loginlab.feature.auth.login.composables.DropDownMenu
-import io.rndev.loginlab.feature.auth.login.composables.ResetPasswordDialog
 import io.rndev.loginlab.feature.auth.login.composables.ForgotYourPasswordContent
 import io.rndev.loginlab.feature.auth.login.composables.LoginHeaderContent
 import io.rndev.loginlab.feature.auth.login.composables.LoginOptionsContent
+import io.rndev.loginlab.feature.auth.login.composables.ResetPasswordDialog
 import io.rndev.loginlab.feature.core.Home
 import io.rndev.loginlab.feature.core.LoginFormType
 import io.rndev.loginlab.feature.core.R
@@ -87,7 +86,7 @@ fun LoginScreen(
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .imePadding()                          // 👈 añade padding automático cuando aparece el teclado
+            .imePadding()  // 👈 añade padding automático cuando aparece el teclado
             .navigationBarsPadding(),
         snackbarHost = { SnackbarHost(snackBarHostState) }
     ) { innerPadding ->

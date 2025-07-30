@@ -23,6 +23,12 @@ android {
 
         val webGoogleIDClient = properties.getProperty("WEB_GOOGLE_ID_CLIENT", "")
         buildConfigField("String", "WEB_GOOGLE_ID_CLIENT", "\"$webGoogleIDClient\"")
+
+        val facebookAppId = properties.getProperty("FACEBOOK_APP_ID", "")
+        val facebookClientToken = properties.getProperty("FACEBOOK_CLIENT_TOKEN", "")
+        manifestPlaceholders["facebookAppId"] = facebookAppId
+        manifestPlaceholders["facebookClientToken"] = facebookClientToken
+        resValue("string", "fb_login_protocol_scheme_dynamic", "fb$facebookAppId")
     }
 
     buildTypes {
@@ -58,6 +64,9 @@ dependencies {
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.androidx.material3.navigation3)
+
+//    Fb
+    implementation(libs.facebook.android.sdk)
 
 //    Serialization
     implementation(libs.kotlinx.serialization.json)
