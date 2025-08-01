@@ -110,9 +110,7 @@ class LoginViewModel @Inject constructor(
 
                         is PhoneAuthEvent.VerificationFailed -> onShowError(event.error.localizedMessage)
                         is PhoneAuthEvent.CodeSent -> _eventChannel.send(
-                            NavigateToVerification(
-                                event.verificationId
-                            )
+                            NavigateToVerification(event.verificationId)
                         )
                     }
                 }

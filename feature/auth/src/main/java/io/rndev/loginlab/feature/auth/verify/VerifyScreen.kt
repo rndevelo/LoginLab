@@ -41,7 +41,7 @@ fun VerifyScreen(
 
     val state = vm.uiState.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
-    var otpCode by rememberSaveable { mutableStateOf("") }
+    var otpCode by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         vm.events.collect { event ->

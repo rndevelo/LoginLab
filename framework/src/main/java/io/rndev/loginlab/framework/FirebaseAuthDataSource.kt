@@ -12,6 +12,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.PhoneAuthCredential
 import com.google.firebase.auth.PhoneAuthOptions
 import com.google.firebase.auth.PhoneAuthProvider
+import com.google.firebase.auth.PhoneAuthProvider.ForceResendingToken
 import io.rndev.loginlab.PhoneAuthEvent
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.User
@@ -28,6 +29,8 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 class FirebaseAuthDataSource @Inject constructor(val auth: FirebaseAuth) : AuthRemoteDataSource {
+
+    private var resendToken: ForceResendingToken? = null
 
     override fun currentUser(): Flow<Result<User>> = callbackFlow {
         val currentUser = auth.currentUser
@@ -91,8 +94,9 @@ class FirebaseAuthDataSource @Inject constructor(val auth: FirebaseAuth) : AuthR
 
             override fun onCodeSent(
                 verificationId: String,
-                token: PhoneAuthProvider.ForceResendingToken
+                token: ForceResendingToken
             ) {
+                resendToken = token
                 trySend(PhoneAuthEvent.CodeSent(verificationId))
             }
         }
@@ -102,9 +106,12 @@ class FirebaseAuthDataSource @Inject constructor(val auth: FirebaseAuth) : AuthR
             .setTimeout(60L, TimeUnit.SECONDS)
             .setActivity(activity)
             .setCallbacks(callbacks)
-            .build()
 
-        PhoneAuthProvider.verifyPhoneNumber(options)
+        resendToken?.let {
+            options.setForceResendingToken(it)
+        }
+
+        PhoneAuthProvider.verifyPhoneNumber(options.build())
 
         awaitClose()
     }
