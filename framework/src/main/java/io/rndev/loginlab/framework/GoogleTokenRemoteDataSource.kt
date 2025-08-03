@@ -12,7 +12,7 @@ import io.rndev.loginlab.Result
 import io.rndev.loginlab.data.datasource.TokenRemoteDataSource
 import javax.inject.Inject
 
-class GoogleCredentialRemoteDataSource @Inject constructor(
+class GoogleTokenRemoteDataSource @Inject constructor(
     private val getCredentialRequest: GetCredentialRequest,
 ) : TokenRemoteDataSource {
 

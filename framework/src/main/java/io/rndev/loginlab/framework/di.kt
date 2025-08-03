@@ -22,7 +22,7 @@ abstract class DataSourceBindsModule {
     abstract fun bindAuthRemoteDataSource(impl: FirebaseAuthDataSource): AuthRemoteDataSource
 
     @Binds
-    abstract fun bindGoogleCredentialRemoteDataSource(impl: GoogleCredentialRemoteDataSource): TokenRemoteDataSource
+    abstract fun bindGoogleCredentialRemoteDataSource(impl: GoogleTokenRemoteDataSource): TokenRemoteDataSource
 }
 
 
