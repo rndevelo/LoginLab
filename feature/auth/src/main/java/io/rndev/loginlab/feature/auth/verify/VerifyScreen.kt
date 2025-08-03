@@ -19,9 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,8 +29,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import io.rndev.loginlab.feature.auth.UiEvent
+import io.rndev.loginlab.feature.auth.getActivity
+import io.rndev.loginlab.feature.auth.login.composables.HelpTextContent
 import io.rndev.loginlab.feature.core.R
 import io.rndev.loginlab.feature.core.composables.PhoneOptionContent
+import kotlinx.coroutines.delay
 
 @Composable
 fun VerifyScreen(
@@ -40,10 +43,13 @@ fun VerifyScreen(
 ) {
 
     val state = vm.uiState.collectAsState()
+    val timerSeconds by vm.timerSeconds.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
     var otpCode by remember { mutableStateOf("") }
+    val activity = getActivity()
 
     LaunchedEffect(Unit) {
+        vm.startTimer()
         vm.events.collect { event ->
             when (event) {
                 is UiEvent.NavigateToHome -> onHome()
@@ -86,6 +92,20 @@ fun VerifyScreen(
                         imageVector = Icons.Default.PhoneAndroid,
                         contentDescription = Icons.Default.PhoneAndroid.toString()
                     )
+                },
+                resendOtpContent = {
+                    HelpTextContent(
+                        when (timerSeconds) {
+                            0 -> stringResource(R.string.verify_text_resend_code)
+                            else -> stringResource(R.string.verify_text_resend_in_s, timerSeconds)
+                        }
+                    ) {
+                        if (timerSeconds == 0) {
+                            activity?.let {
+                                vm.handlePhoneSignIn(activity = activity)
+                            }
+                        }
+                    }
                 },
                 onInitialValue = { otpCode = it.take(6) },
                 onClick = { vm.onVerifyPhoneNumberWithCode(otpCode = otpCode) },

@@ -1,4 +1,5 @@
 import com.android.build.gradle.LibraryExtension
+import io.rndev.loginlab.addAndroidTestDependencies
 import io.rndev.loginlab.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -27,13 +28,12 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 //    Ccp for country number prefix
                 add("implementation", libs.findLibrary("ccp").get())
 
-
-//                add("testImplementation", project(":test:unit"))
-//                add("testImplementation", libs.findLibrary("kotlinx.coroutines.test").get())
-//                add("testImplementation", libs.findLibrary("turbine").get())
+                add("testImplementation", project(":test:unit"))
+                add("testImplementation", libs.findLibrary("kotlinx.coroutines.test").get())
+                add("testImplementation", libs.findLibrary("turbine").get())
             }
 
-//            addAndroidTestDependencies()
+            addAndroidTestDependencies()
         }
     }
 }

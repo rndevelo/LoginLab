@@ -30,6 +30,9 @@
     <string name="login_text_email_sent">Email Sent</string>
     <string name="login_text_check_your_email_to_verify_your_account">Check your email to verify your account</string>
 
+    <string name="verify_text_resend_code">Resend code</string>
+    <string name="verify_text_resend_in_s">Resend in %1$ss</string>
+
 
     <string name="home_text_user_info_missing">%1$s not available</string>
     <string name="home_text_user_info_email">Email</string>

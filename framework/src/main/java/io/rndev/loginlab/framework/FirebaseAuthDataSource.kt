@@ -16,7 +16,7 @@ import com.google.firebase.auth.PhoneAuthProvider.ForceResendingToken
 import io.rndev.loginlab.PhoneAuthEvent
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.User
-import io.rndev.loginlab.datasource.AuthRemoteDataSource
+import io.rndev.loginlab.data.datasource.AuthRemoteDataSource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -47,13 +47,12 @@ class FirebaseAuthDataSource @Inject constructor(val auth: FirebaseAuth) : AuthR
         awaitClose()
     }
 
-    override fun isAuthenticated() = channelFlow {
-        auth.addAuthStateListener {
-            launch {
-                send(Result.Success(it.currentUser != null))
-            }
+    override fun isAuthenticated() = callbackFlow {
+        val listener = FirebaseAuth.AuthStateListener {
+            trySend(Result.Success(it.currentUser != null))
         }
-        awaitClose()
+        auth.addAuthStateListener(listener)
+        awaitClose { auth.removeAuthStateListener(listener) }
     }
 
     //    Email
@@ -85,8 +84,7 @@ class FirebaseAuthDataSource @Inject constructor(val auth: FirebaseAuth) : AuthR
 
         val callbacks = object : PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             override fun onVerificationCompleted(credential: PhoneAuthCredential) {
-                PhoneAuthEvent.VerificationCompleted(credentialSingIn(credential))
-            }
+                trySend(PhoneAuthEvent.VerificationCompleted(credentialSingIn(credential)))            }
 
             override fun onVerificationFailed(e: FirebaseException) {
                 trySend(PhoneAuthEvent.VerificationFailed(e))
@@ -141,7 +139,7 @@ class FirebaseAuthDataSource @Inject constructor(val auth: FirebaseAuth) : AuthR
         auth.signOut()
     }
 
-    fun credentialSingIn(credential: AuthCredential) =
+    private fun credentialSingIn(credential: AuthCredential) =
         auth.signInWithCredential(credential).onResult()
 }
 

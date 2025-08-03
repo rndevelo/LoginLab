@@ -32,6 +32,8 @@
             <option value="$PROJECT_DIR$/feature/core" />
             <option value="$PROJECT_DIR$/feature/user" />
             <option value="$PROJECT_DIR$/framework" />
+            <option value="$PROJECT_DIR$/test" />
+            <option value="$PROJECT_DIR$/test/unit" />
           </set>
         </option>
       </GradleProjectSettings>

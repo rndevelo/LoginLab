@@ -1,8 +1,5 @@
 package io.rndev.loginlab.feature.auth.login
 
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
@@ -39,9 +36,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation3.runtime.NavKey
 import io.rndev.loginlab.feature.auth.UiEvent
+import io.rndev.loginlab.feature.auth.getActivity
 import io.rndev.loginlab.feature.auth.login.composables.CreateAccountContent
 import io.rndev.loginlab.feature.auth.login.composables.DropDownMenu
-import io.rndev.loginlab.feature.auth.login.composables.ForgotYourPasswordContent
+import io.rndev.loginlab.feature.auth.login.composables.HelpTextContent
 import io.rndev.loginlab.feature.auth.login.composables.LoginHeaderContent
 import io.rndev.loginlab.feature.auth.login.composables.LoginOptionsContent
 import io.rndev.loginlab.feature.auth.login.composables.ResetPasswordDialog
@@ -68,7 +66,7 @@ fun LoginScreen(
         vm.events.collect { event ->
             when (event) {
                 is UiEvent.NavigateToHome -> onNavigate(Home)
-                is UiEvent.NavigateToVerification -> onNavigate(Verify(event.verificationId))
+                is UiEvent.NavigateToVerification -> onNavigate(Verify(event.verificationId, event.phone))
                 is UiEvent.ShowError -> snackBarHostState.showSnackbar(event.message)
                 is UiEvent.NavigateToLogin -> TODO()
             }
@@ -185,8 +183,10 @@ private fun LoginContent(
                         onValueChange = { onAction(LoginAction.OnPasswordChanged(it)) },
                     )
                 },
-                forgotYourPasswordText = {
-                    ForgotYourPasswordContent { showDialog = true }
+                forgotYourPasswordContent = {
+                    HelpTextContent(stringResource(R.string.login_text_forgot_your_password)) {
+                        showDialog = true
+                    }
                 },
                 buttonContent = {
                     CreateAccountContent(
@@ -239,14 +239,3 @@ private fun LoginContent(
     }
 }
 
-@Composable
-fun getActivity(): Activity? {
-    val context = LocalContext.current
-    return context.findActivity()
-}
-
-fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
-}

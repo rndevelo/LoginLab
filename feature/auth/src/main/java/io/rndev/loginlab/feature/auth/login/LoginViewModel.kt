@@ -85,8 +85,12 @@ class LoginViewModel @Inject constructor(
             authRepository.emailSignIn(_uiState.value.email, _uiState.value.password)
                 .collectLatest { result ->
                     when (result) {
-                        is Result.Success -> _eventChannel.send(NavigateToHome)
-                        is Result.Error -> onShowError(result.exception.localizedMessage)
+                        is Result.Success -> onUiEvent()
+                        is Result.Error -> onUiEvent(
+                            ShowError(
+                                result.exception.localizedMessage ?: "Unknown error"
+                            )
+                        )
                     }
                 }
         }
@@ -101,16 +105,24 @@ class LoginViewModel @Inject constructor(
                         is PhoneAuthEvent.VerificationCompleted -> {
                             event.result.collectLatest { result ->
                                 when (result) {
-                                    is Result.Success -> _eventChannel.send(NavigateToHome)
-                                    is Result.Error -> onShowError(result.exception.localizedMessage)
+                                    is Result.Success -> onUiEvent()
+                                    is Result.Error -> onUiEvent(
+                                        ShowError(
+                                            result.exception.localizedMessage ?: "Unknown error"
+                                        )
+                                    )
                                 }
-
                             }
                         }
 
-                        is PhoneAuthEvent.VerificationFailed -> onShowError(event.error.localizedMessage)
-                        is PhoneAuthEvent.CodeSent -> _eventChannel.send(
-                            NavigateToVerification(event.verificationId)
+                        is PhoneAuthEvent.VerificationFailed -> onUiEvent(
+                            ShowError(
+                                event.error.localizedMessage ?: "Unknown error"
+                            )
+                        )
+
+                        is PhoneAuthEvent.CodeSent -> onUiEvent(
+                            NavigateToVerification(event.verificationId, phoneNumber)
                         )
                     }
                 }
@@ -122,8 +134,12 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.googleSingIn(context).collectLatest { result ->
                 when (result) {
-                    is Result.Success -> _eventChannel.send(NavigateToHome)
-                    is Result.Error -> onShowError(result.exception.localizedMessage)
+                    is Result.Success -> onUiEvent()
+                    is Result.Error -> onUiEvent(
+                        ShowError(
+                            result.exception.localizedMessage ?: "Unknown error"
+                        )
+                    )
                 }
             }
         }
@@ -138,19 +154,35 @@ class LoginViewModel @Inject constructor(
                         val token = loginResult.accessToken.token
                         authRepository.facebookSingIn(token).collectLatest { result ->
                             when (result) {
-                                is Result.Success -> _eventChannel.send(NavigateToHome)
-                                is Result.Error -> onShowError(result.exception.localizedMessage)
+                                is Result.Success -> onUiEvent()
+                                is Result.Error -> onUiEvent(
+                                    ShowError(
+                                        result.exception.localizedMessage ?: "Unknown error"
+                                    )
+                                )
                             }
                         }
                     }
                 }
 
                 override fun onCancel() {
-                    viewModelScope.launch { onShowError("Facebook login cancelled") }
+                    viewModelScope.launch {
+                        onUiEvent(
+                            ShowError(
+                                "Facebook login cancelled"
+                            )
+                        )
+                    }
                 }
 
                 override fun onError(error: FacebookException) {
-                    viewModelScope.launch { onShowError(error.localizedMessage) }
+                    viewModelScope.launch {
+                        onUiEvent(
+                            ShowError(
+                                error.localizedMessage ?: "Unknown error"
+                            )
+                        )
+                    }
                 }
             }
         )
@@ -161,16 +193,20 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             authRepository.resetPassword(uiState.value.email).collectLatest { result ->
                 when (result) {
-                    is Result.Success -> onShowError("Email de recuperación enviado")
-                    is Result.Error -> onShowError(result.exception.localizedMessage)
+                    is Result.Success -> onUiEvent(ShowError("Email de recuperación enviado"))
+                    is Result.Error -> onUiEvent(
+                        ShowError(
+                            result.exception.localizedMessage ?: "Unknown error"
+                        )
+                    )
                 }
             }
         }
     }
 
-    suspend fun onShowError(error: String?) {
+    private suspend fun onUiEvent(event: UiEvent = NavigateToHome) {
         _uiState.update { it.copy(isLoading = false) }
-        _eventChannel.send(ShowError(error ?: "Unknown error"))
+        _eventChannel.send(event)
     }
 }
 

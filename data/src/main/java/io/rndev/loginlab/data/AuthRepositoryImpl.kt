@@ -1,9 +1,12 @@
-package io.rndev.loginlab
+package io.rndev.loginlab.data
 
 import android.app.Activity
 import android.content.Context
-import io.rndev.loginlab.datasource.AuthRemoteDataSource
-import io.rndev.loginlab.datasource.CredentialRemoteDataSource
+import io.rndev.loginlab.AuthRepository
+import io.rndev.loginlab.Result
+import io.rndev.loginlab.User
+import io.rndev.loginlab.data.datasource.AuthRemoteDataSource
+import io.rndev.loginlab.data.datasource.TokenRemoteDataSource
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -11,7 +14,7 @@ import kotlinx.coroutines.flow.flowOf
 //Implementación del repositorio de autenticación
 class AuthRepositoryImpl @Inject constructor(
     val authRemoteDataSource: AuthRemoteDataSource,
-    val tokenRemoteDataSource: CredentialRemoteDataSource
+    val tokenRemoteDataSource: TokenRemoteDataSource
 ) : AuthRepository {
 
     override fun currentUser(): Flow<Result<User>> = authRemoteDataSource.currentUser()

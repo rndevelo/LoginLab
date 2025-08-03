@@ -11,18 +11,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 
 @Composable
 fun PhoneOptionContent(
@@ -35,19 +28,11 @@ fun PhoneOptionContent(
     error: String?,
     leadingIconContent: @Composable () -> Unit,
     dropDownContent: @Composable () -> Unit = {},
+    resendOtpContent: @Composable () -> Unit = {},
     onInitialValue: (String) -> Unit,
     onClick: () -> Unit,
     onBack: () -> Unit,
 ) {
-
-    var timerSeconds by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(key1 = timerSeconds) {
-        if (timerSeconds > 0) {
-            delay(1000)
-            timerSeconds--
-        }
-    }
 
     Column(Modifier.animateContentSize()) {
         SignInOptionTitle(
@@ -83,19 +68,16 @@ fun PhoneOptionContent(
         Spacer(Modifier.height(16.dp))
 
         CustomButton(
-            onClick = {
-                timerSeconds = 60
-                onClick()
-            },
+            onClick = onClick,
             buttonContent = {
                 when {
                     isLoading -> LoadingAnimation()
-                    timerSeconds > 0 -> Text("$timerSeconds s")
                     else -> Text(textButton)
                 }
             },
-            isEnabled = isEnabled  && timerSeconds == 0,
+            isEnabled = isEnabled,
         )
+        resendOtpContent()
     }
 }
 

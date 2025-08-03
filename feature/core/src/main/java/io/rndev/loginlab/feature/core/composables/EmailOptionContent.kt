@@ -34,7 +34,7 @@ fun EmailOptionContent(
     onClick: () -> Unit = { },
     firstPasswordTextField: @Composable () -> Unit,
     secondPasswordTextField: @Composable () -> Unit = {},
-    forgotYourPasswordText: @Composable () -> Unit = {},
+    forgotYourPasswordContent: @Composable () -> Unit = {},
     buttonContent: @Composable () -> Unit = {},
 ) {
 
@@ -63,7 +63,7 @@ fun EmailOptionContent(
 
         firstPasswordTextField()
         secondPasswordTextField()
-        forgotYourPasswordText()
+        forgotYourPasswordContent()
 
         Spacer(Modifier.height(16.dp))
 

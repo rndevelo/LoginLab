@@ -8,8 +8,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.rndev.loginlab.datasource.AuthRemoteDataSource
-import io.rndev.loginlab.datasource.CredentialRemoteDataSource
+import io.rndev.loginlab.data.datasource.AuthRemoteDataSource
+import io.rndev.loginlab.data.datasource.TokenRemoteDataSource
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -22,7 +22,7 @@ abstract class DataSourceBindsModule {
     abstract fun bindAuthRemoteDataSource(impl: FirebaseAuthDataSource): AuthRemoteDataSource
 
     @Binds
-    abstract fun bindGoogleCredentialRemoteDataSource(impl: GoogleCredentialRemoteDataSource): CredentialRemoteDataSource
+    abstract fun bindGoogleCredentialRemoteDataSource(impl: GoogleCredentialRemoteDataSource): TokenRemoteDataSource
 }
 
 

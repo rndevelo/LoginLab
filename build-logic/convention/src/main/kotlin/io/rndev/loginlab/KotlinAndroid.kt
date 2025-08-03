@@ -38,7 +38,7 @@ internal fun Project.configureKotlinAndroid(
         add("implementation", libs.findLibrary("androidx.lifecycle.runtime.ktx").get())
     }
 
-//    addUnitTestDependencies()
+    addUnitTestDependencies()
 }
 
 /**
@@ -54,5 +54,5 @@ internal fun Project.configureKotlinJvm() {
         add("implementation", libs.findLibrary("kotlinx.coroutines.core").get())
     }
 
-//    addUnitTestDependencies()
+    addUnitTestDependencies()
 }

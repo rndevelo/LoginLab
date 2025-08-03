@@ -10,7 +10,7 @@ data object Login : NavKey
 data object Register : NavKey
 
 @Serializable
-data class Verify(val verificationId: String) : NavKey
+data class Verify(val verificationId: String, val phoneNumber: String) : NavKey
 
 @Serializable
 data object Home : NavKey

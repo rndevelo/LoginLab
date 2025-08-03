@@ -1,4 +1,4 @@
-package io.rndev.loginlab.datasource
+package io.rndev.loginlab.data.datasource
 
 import android.app.Activity
 import io.rndev.loginlab.PhoneAuthEvent

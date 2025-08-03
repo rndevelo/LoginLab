@@ -1,5 +1,6 @@
-package io.rndev.loginlab
+package io.rndev.loginlab.domain
 
+import io.rndev.loginlab.User
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
