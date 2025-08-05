@@ -10,4 +10,5 @@ android {
 dependencies {
     implementation(project(":domain"))
     testImplementation(project(":test:unit"))
+    implementation (libs.facebook.login)
 }

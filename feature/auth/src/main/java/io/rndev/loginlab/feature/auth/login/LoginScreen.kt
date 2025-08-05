@@ -74,7 +74,7 @@ fun LoginScreen(
     }
 
     val facebookLoginLauncher = rememberLauncherForActivityResult(
-        contract = vm.loginManager.createLogInActivityResultContract(vm.callbackManager, null),
+        contract = vm.authRepository.getFbLoginActivityResultContract(),
         onResult = {
             // El resultado se maneja en el callback registrado en el ViewModel
             // a través del vm.callbackManager
@@ -101,6 +101,7 @@ fun LoginScreen(
                 onRegister = { onNavigate(Register) },
                 onAction = vm::onAction,
                 onFbActivityResult = {
+                    vm.onAction(LoginAction.OnFbSignIn)
                     facebookLoginLauncher.launch(
                         listOf(
                             "email",

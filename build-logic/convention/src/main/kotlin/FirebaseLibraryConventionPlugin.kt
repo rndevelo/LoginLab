@@ -12,6 +12,7 @@ class FirebaseLibraryConventionPlugin : Plugin<Project> {
                 add("implementation", libs.findLibrary("androidx.credentials").get())
                 add("implementation", libs.findLibrary("androidx.credentials.play.services.auth").get())
                 add("implementation", libs.findLibrary("googleid").get())
+                add("implementation", libs.findLibrary("facebook.login").get())
             }
         }
     }

@@ -60,7 +60,7 @@ class VerifyViewModel @AssistedInject constructor(
     fun handlePhoneSignIn(activity: Activity) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            authRepository.phoneSingIn(navKey.phoneNumber, activity) // Pasar firebaseAuth aquí
+            authRepository.phoneSignIn(navKey.phoneNumber, activity) // Pasar firebaseAuth aquí
                 .collectLatest { event ->
                     when (event) {
                         is PhoneAuthEvent.VerificationCompleted -> {

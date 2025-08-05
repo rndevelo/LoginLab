@@ -5,3 +5,7 @@ plugins {
 android {
     namespace = "io.rndev.loginlab.domain"
 }
+
+dependencies {
+    implementation (libs.facebook.login)
+}

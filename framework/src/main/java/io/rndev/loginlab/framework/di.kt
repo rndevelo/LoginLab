@@ -1,6 +1,8 @@
 package io.rndev.loginlab.framework
 
 import androidx.credentials.GetCredentialRequest
+import com.facebook.CallbackManager
+import com.facebook.login.LoginManager
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.firebase.auth.FirebaseAuth
 import dagger.Binds
@@ -8,8 +10,9 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.rndev.loginlab.data.datasource.AuthRemoteDataSource
-import io.rndev.loginlab.data.datasource.TokenRemoteDataSource
+import io.rndev.loginlab.datasource.AuthRemoteDataSource
+import io.rndev.loginlab.datasource.FacebookLoginHandler
+import io.rndev.loginlab.datasource.GoogleTokenRemoteDataSource
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -22,7 +25,10 @@ abstract class DataSourceBindsModule {
     abstract fun bindAuthRemoteDataSource(impl: FirebaseAuthDataSource): AuthRemoteDataSource
 
     @Binds
-    abstract fun bindGoogleCredentialRemoteDataSource(impl: GoogleTokenRemoteDataSource): TokenRemoteDataSource
+    abstract fun bindGoogleCredentialRemoteDataSource(impl: GoogleTokenDataSourceImpl): GoogleTokenRemoteDataSource
+
+    @Binds
+    abstract fun bindFacebookLoginHandler(impl: FacebookLoginHandlerImpl): FacebookLoginHandler
 }
 
 
@@ -45,4 +51,10 @@ internal class FirebaseAuthModule {
     fun request(signInWithGoogleOption: GetSignInWithGoogleOption) = GetCredentialRequest.Builder()
         .addCredentialOption(signInWithGoogleOption)
         .build()
+
+    @Provides
+    fun callbackManager() = CallbackManager.Factory.create()
+
+    @Provides
+    fun loginManager() = LoginManager.getInstance()
 }

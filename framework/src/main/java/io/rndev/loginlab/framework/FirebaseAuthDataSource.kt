@@ -16,7 +16,7 @@ import com.google.firebase.auth.PhoneAuthProvider.ForceResendingToken
 import io.rndev.loginlab.PhoneAuthEvent
 import io.rndev.loginlab.Result
 import io.rndev.loginlab.User
-import io.rndev.loginlab.data.datasource.AuthRemoteDataSource
+import io.rndev.loginlab.datasource.AuthRemoteDataSource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow

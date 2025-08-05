@@ -9,12 +9,12 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import io.rndev.loginlab.Result
-import io.rndev.loginlab.data.datasource.TokenRemoteDataSource
+import io.rndev.loginlab.datasource.GoogleTokenRemoteDataSource
 import javax.inject.Inject
 
-class GoogleTokenRemoteDataSource @Inject constructor(
+class GoogleTokenDataSourceImpl @Inject constructor(
     private val getCredentialRequest: GetCredentialRequest,
-) : TokenRemoteDataSource {
+) : GoogleTokenRemoteDataSource {
 
     override suspend fun getGoogleIdToken(context: Context): Result<String> {
         return try {

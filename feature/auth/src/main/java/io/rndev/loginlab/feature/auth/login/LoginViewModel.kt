@@ -4,11 +4,6 @@ import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.facebook.CallbackManager
-import com.facebook.FacebookCallback
-import com.facebook.FacebookException
-import com.facebook.login.LoginManager
-import com.facebook.login.LoginResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.rndev.loginlab.AuthRepository
 import io.rndev.loginlab.PhoneAuthEvent
@@ -34,6 +29,7 @@ sealed interface LoginAction {
     data object OnEmailSignIn : LoginAction
     data class OnPhoneSignIn(val phoneNumber: String, val activity: Activity) : LoginAction
     data class OnGoogleSignIn(val context: Context) : LoginAction
+    data object OnFbSignIn : LoginAction
     data object OnResetPassword : LoginAction
     data class OnEmailChanged(val email: String) : LoginAction
     data class OnPasswordChanged(val password: String) : LoginAction
@@ -41,11 +37,8 @@ sealed interface LoginAction {
 }
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    internal val callbackManager: CallbackManager,
-    internal val loginManager: LoginManager
-) : ViewModel() {
+class LoginViewModel @Inject constructor(internal val authRepository: AuthRepository) :
+    ViewModel() {
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -53,15 +46,12 @@ class LoginViewModel @Inject constructor(
     private val _eventChannel = Channel<UiEvent>()
     val events = _eventChannel.receiveAsFlow()
 
-    init {
-        registerFacebookCallback()
-    }
-
     fun onAction(action: LoginAction) {
         when (action) {
             is LoginAction.OnEmailSignIn -> handleEmailSignIn()
             is LoginAction.OnPhoneSignIn -> handlePhoneSignIn(action.phoneNumber, action.activity)
             is LoginAction.OnGoogleSignIn -> handleGoogleSignIn(action.context)
+            is LoginAction.OnFbSignIn -> handleFacebookCallback()
             is LoginAction.OnResetPassword -> handleResetPassword()
             is LoginAction.OnEmailChanged -> _uiState.update {
                 val newState = it.copy(email = action.email)
@@ -99,7 +89,7 @@ class LoginViewModel @Inject constructor(
     private fun handlePhoneSignIn(phoneNumber: String, activity: Activity) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            authRepository.phoneSingIn(phoneNumber, activity) // Pasar firebaseAuth aquí
+            authRepository.phoneSignIn(phoneNumber, activity) // Pasar firebaseAuth aquí
                 .collectLatest { event ->
                     when (event) {
                         is PhoneAuthEvent.VerificationCompleted -> {
@@ -132,7 +122,7 @@ class LoginViewModel @Inject constructor(
     private fun handleGoogleSignIn(context: Context) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            authRepository.googleSingIn(context).collectLatest { result ->
+            authRepository.googleSignIn(context).collectLatest { result ->
                 when (result) {
                     is Result.Success -> onUiEvent()
                     is Result.Error -> onUiEvent(
@@ -145,47 +135,15 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun registerFacebookCallback() {
-        loginManager.registerCallback(
-            callbackManager,
-            object : FacebookCallback<LoginResult> {
-                override fun onSuccess(loginResult: LoginResult) {
-                    viewModelScope.launch {
-                        val token = loginResult.accessToken.token
-                        authRepository.facebookSingIn(token).collectLatest { result ->
-                            when (result) {
-                                is Result.Success -> onUiEvent()
-                                is Result.Error -> onUiEvent(
-                                    ShowError(
-                                        result.exception.localizedMessage ?: "Unknown error"
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-
-                override fun onCancel() {
-                    viewModelScope.launch {
-                        onUiEvent(
-                            ShowError(
-                                "Facebook login cancelled"
-                            )
-                        )
-                    }
-                }
-
-                override fun onError(error: FacebookException) {
-                    viewModelScope.launch {
-                        onUiEvent(
-                            ShowError(
-                                error.localizedMessage ?: "Unknown error"
-                            )
-                        )
-                    }
-                }
+    private fun handleFacebookCallback() = viewModelScope.launch {
+        authRepository.facebookSignIn().collectLatest { result ->
+            when (result) {
+                is Result.Success -> onUiEvent()
+                is Result.Error -> onUiEvent(
+                    ShowError(result.exception.localizedMessage ?: "Unknown error")
+                )
             }
-        )
+        }
     }
 
     private fun handleResetPassword() {

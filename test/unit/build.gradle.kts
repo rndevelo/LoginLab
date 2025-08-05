@@ -11,4 +11,5 @@ dependencies {
     implementation(project(":data"))
     implementation(libs.junit)
     implementation(libs.kotlinx.coroutines.test)
+    implementation (libs.facebook.login)
 }

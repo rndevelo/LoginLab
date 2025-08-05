@@ -5,8 +5,9 @@ import android.content.Context
 import io.rndev.loginlab.AuthRepository
 import io.rndev.loginlab.PhoneAuthEvent
 import io.rndev.loginlab.Result
-import io.rndev.loginlab.data.datasource.AuthRemoteDataSource
-import io.rndev.loginlab.data.datasource.TokenRemoteDataSource
+import io.rndev.loginlab.datasource.AuthRemoteDataSource
+import io.rndev.loginlab.datasource.FacebookLoginHandler
+import io.rndev.loginlab.datasource.GoogleTokenRemoteDataSource
 import io.rndev.loginlab.domain.generateFakeUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
@@ -15,7 +16,8 @@ fun buildAuthRepositoryWith(
     authResult: Result<Boolean>,
     phoneAuthEvent: PhoneAuthEvent,
     verifiedEmail: Boolean,
-    googleToken: Result<String>
+    googleToken: Result<String>,
+    facebookToken: String
 ): AuthRepository {
 
     val authRemoteDataSource = FakeAuthDataSource().apply {
@@ -24,13 +26,23 @@ fun buildAuthRepositoryWith(
         inMemoryVerifiedEmail.value = verifiedEmail
     }
 
-    val tokenRemoteDataSource = FakeTokenDataSource().apply {
+    val tokenRemoteDataSource = FakeGoogleTokenDataSource().apply {
         inMemoryTokenResult = googleToken as Result.Success<String>
+    }
+
+    val facebookLoginHandler = FakeFacebookHandler().apply {
+
+        registerCallback(
+            onSuccess = { inMemoryTokenResult = facebookToken },
+            onError = { inMemoryTokenResult = "facebookError" },
+            onCancel = { inMemoryTokenResult = "facebookCancel" }
+        )
     }
 
     return AuthRepositoryImpl(
         authRemoteDataSource = authRemoteDataSource,
-        tokenRemoteDataSource = tokenRemoteDataSource
+        googleTokenRemoteDataSource = tokenRemoteDataSource,
+        facebookLoginHandler = facebookLoginHandler
     )
 }
 
@@ -55,9 +67,29 @@ class FakeAuthDataSource : AuthRemoteDataSource {
     override fun signOut() {}
 }
 
-class FakeTokenDataSource : TokenRemoteDataSource {
+class FakeGoogleTokenDataSource : GoogleTokenRemoteDataSource {
 
-    var inMemoryTokenResult = Result.Success("token")
+    var inMemoryTokenResult = Result.Success("google_token")
 
     override suspend fun getGoogleIdToken(context: Context) = inMemoryTokenResult
+}
+
+class FakeFacebookHandler : FacebookLoginHandler {
+
+    var inMemoryTokenResult = "fb_token"
+
+
+    override fun getLoginActivityResultContract(): com.facebook.login.LoginManager.FacebookLoginActivityResultContract {
+        TODO("Not yet implemented")
+    }
+
+    override fun registerCallback(
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit,
+        onCancel: () -> Unit
+    ) {
+        onSuccess(inMemoryTokenResult)
+        onError(inMemoryTokenResult)
+        onError("Fb Cancel")
+    }
 }

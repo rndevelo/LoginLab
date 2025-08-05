@@ -2,8 +2,8 @@ package io.rndev.loginlab.data
 
 import io.rndev.loginlab.PhoneAuthEvent
 import io.rndev.loginlab.Result
-import io.rndev.loginlab.data.datasource.AuthRemoteDataSource
-import io.rndev.loginlab.data.datasource.TokenRemoteDataSource
+import io.rndev.loginlab.datasource.AuthRemoteDataSource
+import io.rndev.loginlab.datasource.GoogleTokenRemoteDataSource
 import io.rndev.loginlab.domain.generateFakeUser
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.flow.first
@@ -27,7 +27,7 @@ class AuthRepositoryTest {
     private lateinit var authRemoteDataSource: AuthRemoteDataSource
 
     @Mock
-    private lateinit var tokenRemoteDataSource: TokenRemoteDataSource
+    private lateinit var googleTokenRemoteDataSource: GoogleTokenRemoteDataSource
 
     private lateinit var repository: AuthRepositoryImpl
 
@@ -37,7 +37,7 @@ class AuthRepositoryTest {
         repository =
             AuthRepositoryImpl(
                 authRemoteDataSource = authRemoteDataSource,
-                tokenRemoteDataSource = tokenRemoteDataSource
+                googleTokenRemoteDataSource = googleTokenRemoteDataSource
             )
     }
 
@@ -126,14 +126,14 @@ class AuthRepositoryTest {
         val mockIdToken = "mock_token"
         val authResult = Result.Success(true)
 
-        whenever(tokenRemoteDataSource.getGoogleIdToken(any())).thenReturn(
+        whenever(googleTokenRemoteDataSource.getGoogleIdToken(any())).thenReturn(
             Result.Success(
                 mockIdToken
             )
         )
         whenever(authRemoteDataSource.googleSingIn(eq(mockIdToken))).thenReturn(flowOf(authResult))
 
-        val result = repository.googleSingIn(mock())
+        val result = repository.googleSignIn(mock())
 
         assertEquals(authResult, result.first())
     }
@@ -143,14 +143,14 @@ class AuthRepositoryTest {
         val mockIdToken = "mock_token"
         val authResult = Result.Error(Exception("Error"))
 
-        whenever(tokenRemoteDataSource.getGoogleIdToken(any())).thenReturn(
+        whenever(googleTokenRemoteDataSource.getGoogleIdToken(any())).thenReturn(
             Result.Success(
                 mockIdToken
             )
         )
         whenever(authRemoteDataSource.googleSingIn(eq(mockIdToken))).thenReturn(flowOf(authResult))
 
-        val result = repository.googleSingIn(mock())
+        val result = repository.googleSignIn(mock())
 
         assertEquals(authResult, result.first())
     }
@@ -164,7 +164,7 @@ class AuthRepositoryTest {
         whenever(authRemoteDataSource.facebookSingIn(eq(mockIdToken)))
             .thenReturn(flowOf(authResult))
 
-        val result = repository.facebookSingIn(mockIdToken)
+        val result = repository.facebookSignIn(mockIdToken)
 
         assertEquals(authResult, result.first())
     }
@@ -177,7 +177,7 @@ class AuthRepositoryTest {
         whenever(authRemoteDataSource.facebookSingIn(eq(mockIdToken)))
             .thenReturn(flowOf(authResult))
 
-        val result = repository.facebookSingIn(mockIdToken)
+        val result = repository.facebookSignIn(mockIdToken)
 
         assertEquals(authResult, result.first())
     }
@@ -218,7 +218,7 @@ class AuthRepositoryTest {
             whenever(authRemoteDataSource.phoneSingIn(eq(""), any()))
                 .thenReturn(flowOf(phoneAuthEventResult))
 
-            val result = repository.phoneSingIn("", mock())
+            val result = repository.phoneSignIn("", mock())
 
             assertEquals(phoneAuthEventResult, result.first())
         }
@@ -232,7 +232,7 @@ class AuthRepositoryTest {
         whenever(authRemoteDataSource.phoneSingIn(eq(""), any()))
             .thenReturn(flowOf(phoneAuthEventResult))
 
-        val result = repository.phoneSingIn("", mock())
+        val result = repository.phoneSignIn("", mock())
 
         assertEquals(phoneAuthEventResult, result.first())
     }
@@ -245,7 +245,7 @@ class AuthRepositoryTest {
         whenever(authRemoteDataSource.phoneSingIn(eq(""), any()))
             .thenReturn(flowOf(phoneAuthEventResult))
 
-        val result = repository.phoneSingIn("", mock())
+        val result = repository.phoneSignIn("", mock())
 
         assertEquals(phoneAuthEventResult, result.first())
     }
