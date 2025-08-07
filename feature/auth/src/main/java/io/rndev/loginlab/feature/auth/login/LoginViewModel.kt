@@ -90,10 +90,10 @@ class LoginViewModel @Inject constructor(internal val authRepository: AuthReposi
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             authRepository.phoneSignIn(phoneNumber, activity) // Pasar firebaseAuth aquí
-                .collectLatest { event ->
-                    when (event) {
+                .collectLatest { phoneAuthEvent ->
+                    when (phoneAuthEvent) {
                         is PhoneAuthEvent.VerificationCompleted -> {
-                            event.result.collectLatest { result ->
+                            phoneAuthEvent.result.collectLatest { result ->
                                 when (result) {
                                     is Result.Success -> onUiEvent()
                                     is Result.Error -> onUiEvent(
@@ -107,12 +107,12 @@ class LoginViewModel @Inject constructor(internal val authRepository: AuthReposi
 
                         is PhoneAuthEvent.VerificationFailed -> onUiEvent(
                             ShowError(
-                                event.error.localizedMessage ?: "Unknown error"
+                                phoneAuthEvent.error.localizedMessage ?: "Unknown error"
                             )
                         )
 
                         is PhoneAuthEvent.CodeSent -> onUiEvent(
-                            NavigateToVerification(event.verificationId, phoneNumber)
+                            NavigateToVerification(phoneAuthEvent.verificationId, phoneNumber)
                         )
                     }
                 }

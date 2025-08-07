@@ -27,15 +27,15 @@ fun buildAuthRepositoryWith(
     }
 
     val tokenRemoteDataSource = FakeGoogleTokenDataSource().apply {
-        inMemoryTokenResult = googleToken as Result.Success<String>
+        inMemoryGoogleTokenResult = googleToken as Result.Success<String>
     }
 
     val facebookLoginHandler = FakeFacebookHandler().apply {
 
         registerCallback(
-            onSuccess = { inMemoryTokenResult = facebookToken },
-            onError = { inMemoryTokenResult = "facebookError" },
-            onCancel = { inMemoryTokenResult = "facebookCancel" }
+            onSuccess = { inMemoryFbTokenResult = facebookToken },
+            onError = { inMemoryFbTokenResult = "facebookError" },
+            onCancel = { inMemoryFbTokenResult = "facebookCancel" }
         )
     }
 
@@ -69,14 +69,14 @@ class FakeAuthDataSource : AuthRemoteDataSource {
 
 class FakeGoogleTokenDataSource : GoogleTokenRemoteDataSource {
 
-    var inMemoryTokenResult = Result.Success("google_token")
+    var inMemoryGoogleTokenResult = Result.Success("google_token")
 
-    override suspend fun getGoogleIdToken(context: Context) = inMemoryTokenResult
+    override suspend fun getGoogleIdToken(context: Context) = inMemoryGoogleTokenResult
 }
 
 class FakeFacebookHandler : FacebookLoginHandler {
 
-    var inMemoryTokenResult = "fb_token"
+    var inMemoryFbTokenResult = "fb_token"
 
 
     override fun getLoginActivityResultContract(): com.facebook.login.LoginManager.FacebookLoginActivityResultContract {
@@ -88,8 +88,8 @@ class FakeFacebookHandler : FacebookLoginHandler {
         onError: (String) -> Unit,
         onCancel: () -> Unit
     ) {
-        onSuccess(inMemoryTokenResult)
-        onError(inMemoryTokenResult)
+        onSuccess(inMemoryFbTokenResult)
+        onError(inMemoryFbTokenResult)
         onError("Fb Cancel")
     }
 }

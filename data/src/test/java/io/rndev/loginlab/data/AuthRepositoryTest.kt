@@ -29,6 +29,9 @@ class AuthRepositoryTest {
     @Mock
     private lateinit var googleTokenRemoteDataSource: GoogleTokenRemoteDataSource
 
+    @Mock
+    private lateinit var facebookHandler: FakeFacebookHandler
+
     private lateinit var repository: AuthRepositoryImpl
 
 
@@ -37,7 +40,8 @@ class AuthRepositoryTest {
         repository =
             AuthRepositoryImpl(
                 authRemoteDataSource = authRemoteDataSource,
-                googleTokenRemoteDataSource = googleTokenRemoteDataSource
+                googleTokenRemoteDataSource = googleTokenRemoteDataSource,
+                facebookLoginHandler =  facebookHandler
             )
     }
 
@@ -164,7 +168,7 @@ class AuthRepositoryTest {
         whenever(authRemoteDataSource.facebookSingIn(eq(mockIdToken)))
             .thenReturn(flowOf(authResult))
 
-        val result = repository.facebookSignIn(mockIdToken)
+        val result = repository.facebookSignIn()
 
         assertEquals(authResult, result.first())
     }
@@ -177,7 +181,7 @@ class AuthRepositoryTest {
         whenever(authRemoteDataSource.facebookSingIn(eq(mockIdToken)))
             .thenReturn(flowOf(authResult))
 
-        val result = repository.facebookSignIn(mockIdToken)
+        val result = repository.facebookSignIn()
 
         assertEquals(authResult, result.first())
     }
